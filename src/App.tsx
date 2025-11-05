@@ -1,14 +1,13 @@
+import { Outlet } from "react-router-dom";
 import { Navbar } from "./components";
 
 function App() {
 	return (
-		<div className="min-h-screen flex flex-col">
+		<div className="flex flex-col min-h-screen bg-gray-50">
 			<Navbar />
-			<main className="flex-1 flex items-center justify-center">
-				<h1 className="text-2xl font-semibold">
-					Welcome to the WPPL Demo!
-				</h1>
-			</main>
+			<div className="flex-grow">
+				<Outlet />
+			</div>
 		</div>
 	);
 }
