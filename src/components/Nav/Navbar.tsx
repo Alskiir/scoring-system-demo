@@ -16,14 +16,14 @@ const Navbar: React.FC = () => {
 	};
 
 	return (
-		<nav className="bg-[#263C96] text-white shadow-lg flex justify-center">
-			<div className="max-w-7xl px-8 w-full">
-				<div className="flex justify-between items-center h-20">
+		<nav className="flex justify-center bg-linear-to-r from-neutral-950/95 via-neutral-900/95 to-neutral-950/95 text-neutral-100 border-b border-neutral-800/60 backdrop-blur shadow-[0_8px_30px_rgba(15,23,42,0.35)]">
+			<div className="w-full max-w-7xl px-6 md:px-8">
+				<div className="flex h-20 items-center justify-between">
 					{/* Left: Logo and/or Title */}
 					<div className="flex items-center">
 						<Link
 							to="/"
-							className="font-semibold text-xl tracking-wide"
+							className="text-lg font-semibold uppercase tracking-[0.20em] text-neutral-100 drop-shadow-sm transition-colors duration-300 hover:text-sky-300"
 						>
 							WPPL Scoring System Demo
 						</Link>
@@ -36,11 +36,19 @@ const Navbar: React.FC = () => {
 								key={link.name}
 								to={link.path}
 								onClick={handleLinkClick}
-								className="relative px-4 py-2 text-base font-medium transition-all duration-200 hover:text-[#FFD500]
-                                           after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#FFD500]
-                                           hover:after:w-full after:transition-all after:duration-300"
+								className="group relative overflow-hidden rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-neutral-300 transition-all duration-200 hover:text-neutral-50"
 							>
-								{link.name}
+								<span
+									aria-hidden="true"
+									className="pointer-events-none absolute inset-0 scale-0 bg-sky-500/20 opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100"
+								/>
+								<span className="relative z-10">
+									{link.name}
+								</span>
+								<span
+									aria-hidden="true"
+									className="pointer-events-none absolute inset-x-3 bottom-1 h-px scale-x-0 bg-sky-300/70 transition-transform duration-300 group-hover:scale-x-100"
+								/>
 							</Link>
 						))}
 					</div>
@@ -48,7 +56,7 @@ const Navbar: React.FC = () => {
 					{/* Mobile menu toggle */}
 					<button
 						type="button"
-						className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-white hover:text-[#FFD500] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#263C96] focus:ring-[#FFD500]"
+						className="inline-flex items-center justify-center rounded-xl border border-neutral-700/50 p-2 text-neutral-200 shadow-sm transition-all duration-200 hover:border-sky-400/60 hover:text-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-neutral-900 md:hidden"
 						aria-controls="mobile-navigation"
 						aria-expanded={isMenuOpen}
 						onClick={() => setIsMenuOpen((prev) => !prev)}
@@ -84,7 +92,7 @@ const Navbar: React.FC = () => {
 				{/* Mobile nav links */}
 				<div
 					id="mobile-navigation"
-					className={`md:hidden pt-2 pb-4 border-t border-white/10 ${
+					className={`md:hidden border-t border-neutral-800/60 bg-neutral-950/90 px-2 pb-4 pt-3 backdrop-blur ${
 						isMenuOpen ? "block" : "hidden"
 					}`}
 				>
@@ -94,7 +102,7 @@ const Navbar: React.FC = () => {
 								key={link.name}
 								to={link.path}
 								onClick={handleLinkClick}
-								className="px-2 py-2 text-base font-medium transition-colors duration-200 hover:text-[#FFD500]"
+								className="rounded-lg px-3 py-2 text-sm font-semibold uppercase tracking-[0.22em] text-neutral-300 transition-colors duration-200 hover:bg-sky-500/15 hover:text-neutral-50"
 							>
 								{link.name}
 							</Link>
