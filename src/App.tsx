@@ -5,7 +5,7 @@ function App() {
 	return (
 		<div className="flex flex-col min-h-screen bg-gray-50">
 			<Navbar />
-			<div className="flex-grow">
+			<div className="grow">
 				<Outlet />
 			</div>
 		</div>
