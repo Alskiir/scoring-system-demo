@@ -82,30 +82,24 @@ function Teams() {
 		>
 			{selectedTeam ? (
 				<div className="flex flex-col gap-6 text-neutral-200">
-					<GlassCard>
-						<div className="flex flex-wrap items-center justify-between gap-4">
-							<div className="flex flex-col gap-1">
-								<h2 className="text-2xl font-semibold text-neutral-100">
-									{selectedTeam.name}
-								</h2>
-								<p className="text-sm text-neutral-400">
-									{relatedDivision?.name ?? "Independent"} -{" "}
-									{relatedSeason?.name ?? "Season TBD"}
-								</p>
-							</div>
-							<div className="flex flex-col gap-1 text-sm text-neutral-400">
-								<span>
-									Captain:{" "}
-									{captain
-										? `${captain.firstName} ${captain.lastName}`
-										: "—"}
-								</span>
-								<span>
-									Home Court: {selectedTeam.homeCourt}
-								</span>
-							</div>
-						</div>
-					</GlassCard>
+					<GlassCard
+						title={selectedTeam.name}
+						description={`${
+							relatedDivision?.name ?? "Independent"
+						} - ${relatedSeason?.name ?? "Season TBD"}`}
+						details={[
+							{
+								label: "Captain",
+								value: captain
+									? `${captain.firstName} ${captain.lastName}`
+									: "-",
+							},
+							{
+								label: "Home Court",
+								value: selectedTeam.homeCourt,
+							},
+						]}
+					/>
 
 					<Table
 						headers={[
@@ -120,12 +114,7 @@ function Teams() {
 					/>
 				</div>
 			) : (
-				<GlassCard
-					className="text-center text-neutral-400"
-					paddingClass="p-8"
-				>
-					Choose a team to view roster details.
-				</GlassCard>
+				<GlassCard description="Choose a team to view roster details." />
 			)}
 		</PageShell>
 	);
