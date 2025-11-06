@@ -1,16 +1,17 @@
+import { GlassCard, PageShell } from "../../components";
+
 function Standings() {
 	return (
-		<div className="min-h-screen flex flex-col">
-			<main className="flex-1 bg-neutral-950/95 py-16">
-				<div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 md:px-12">
-					<div className="flex flex-col items-start gap-3">
-						<h1 className="text-3xl font-semibold tracking-tight text-neutral-100">
-							Standings
-						</h1>
-					</div>
-				</div>
-			</main>
-		</div>
+		<PageShell
+			title="Standings"
+			description="Analyze division standings, head-to-head records, and streaks for the current WPPL season."
+		>
+			<GlassCard className="text-neutral-300">
+				<p className="text-sm">
+					Division standings visualizations will plug into this space.
+				</p>
+			</GlassCard>
+		</PageShell>
 	);
 }
 

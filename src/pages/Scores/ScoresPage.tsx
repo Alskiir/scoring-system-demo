@@ -1,16 +1,17 @@
+import { GlassCard, PageShell } from "../../components";
+
 function Scores() {
 	return (
-		<div className="min-h-screen flex flex-col">
-			<main className="flex-1 bg-neutral-950/95 py-16">
-				<div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 md:px-12">
-					<div className="flex flex-col items-start gap-3">
-						<h1 className="text-3xl font-semibold tracking-tight text-neutral-100">
-							Scores
-						</h1>
-					</div>
-				</div>
-			</main>
-		</div>
+		<PageShell
+			title="Scores"
+			description="Review recent match results and plan for upcoming fixtures in the WPPL season."
+		>
+			<GlassCard className="text-neutral-300">
+				<p className="text-sm">
+					Score tracking widgets will live here.
+				</p>
+			</GlassCard>
+		</PageShell>
 	);
 }
 

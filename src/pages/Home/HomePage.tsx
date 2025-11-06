@@ -1,16 +1,21 @@
+import { GlassCard, PageShell } from "../../components";
+
 function Home() {
 	return (
-		<div className="min-h-screen flex flex-col">
-			<main className="flex-1 bg-neutral-950/95 py-16">
-				<div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 md:px-12">
-					<div className="flex flex-col items-start gap-3">
-						<h1 className="text-3xl font-semibold tracking-tight text-neutral-100">
-							Home
-						</h1>
-					</div>
-				</div>
-			</main>
-		</div>
+		<PageShell
+			title="Home"
+			description="Welcome to the WPPL scoring system demo. Track league progress, team rosters, and upcoming matches from a single place."
+		>
+			<GlassCard className="text-neutral-200" paddingClass="p-8">
+				<h2 className="text-xl font-semibold text-neutral-100">
+					Get started
+				</h2>
+				<p className="mt-3 text-sm text-neutral-300">
+					Use the navigation to explore standings, scores, and teams
+					for the Women's Power Pickleball League.
+				</p>
+			</GlassCard>
+		</PageShell>
 	);
 }
 
