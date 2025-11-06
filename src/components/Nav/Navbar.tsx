@@ -9,6 +9,7 @@ const Navbar: React.FC = () => {
 		{ name: "Scores", path: "/scores" },
 		{ name: "Standings", path: "/standings" },
 		{ name: "Teams", path: "/teams" },
+		{ name: "About", path: "/about" },
 	];
 
 	const handleLinkClick = () => {

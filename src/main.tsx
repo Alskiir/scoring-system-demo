@@ -2,7 +2,13 @@ import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from "./App";
-import { HomePage, ScoresPage, StandingsPage, TeamsPage } from "./pages";
+import {
+	AboutPage,
+	HomePage,
+	ScoresPage,
+	StandingsPage,
+	TeamsPage,
+} from "./pages";
 import "./styles/global.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -15,6 +21,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 					<Route path="scores" element={<ScoresPage />} />
 					<Route path="standings" element={<StandingsPage />} />
 					<Route path="teams" element={<TeamsPage />} />
+					<Route path="about" element={<AboutPage />} />
 				</Route>
 			</Routes>
 		</BrowserRouter>
