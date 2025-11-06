@@ -1,17 +1,14 @@
-import { Table } from "../../components";
-
 function Home() {
 	return (
 		<div className="min-h-screen flex flex-col">
-			<main className="flex-1 flex flex-col items-center justify-center gap-6">
-				<h1 className="text-3xl font-semibold tracking-tight">Home</h1>
-				<Table
-					headers={["Name", "Score", "Team"]}
-					data={[
-						["Alice", 12, "Blue Rockets"],
-						["Bob", 15, "Red Panthers"],
-					]}
-				/>
+			<main className="flex-1 bg-neutral-950/95 py-16">
+				<div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 md:px-12">
+					<div className="flex flex-col items-start gap-3">
+						<h1 className="text-3xl font-semibold tracking-tight text-neutral-100">
+							Home
+						</h1>
+					</div>
+				</div>
 			</main>
 		</div>
 	);
