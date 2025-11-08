@@ -1,169 +1,44 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { FilterDropdown, GlassCard, PageShell, Table } from "../../components";
-import { getTeam, getTeamRoster, getTeams } from "../../data";
+import { useTeamsPageData } from "./hooks/useTeamsPageData";
+import type { TeamRosterEntry } from "./types";
 
-type TeamRecord = {
-	id: string;
-	name: string;
-	location?: string | null;
-	home_court?: string | null;
-};
-
-type PersonRecord = {
-	id: string;
-	first_name: string;
-	last_name: string;
-	email: string | null;
-	phone_mobile: string | null;
-	birthday?: string | null;
-};
-
-type TeamMembership = {
-	role: string | null;
-	person: PersonRecord;
-};
-
-type TeamRosterRow = {
-	role: string | null;
-	person: PersonRecord | null;
-};
-
-function Teams() {
-	const [teams, setTeams] = useState<TeamRecord[]>([]);
-	const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
-	const [teamDetails, setTeamDetails] = useState<TeamRecord | null>(null);
-	const [roster, setRoster] = useState<TeamMembership[]>([]);
-	const [error, setError] = useState<string | null>(null);
-	const [isLoadingTeams, setIsLoadingTeams] = useState(true);
-	const [isLoadingRoster, setIsLoadingRoster] = useState(false);
-
-	useEffect(() => {
-		let isSubscribed = true;
-
-		async function loadTeams() {
-			setIsLoadingTeams(true);
-			setError(null);
-			try {
-				const data = await getTeams();
-				if (!isSubscribed) return;
-				const sanitizedTeams = (data ?? []).filter(
-					(team): team is TeamRecord =>
-						Boolean(team?.id && team?.name)
-				);
-				setTeams(sanitizedTeams);
-				if (sanitizedTeams.length) {
-					setSelectedTeamId(
-						(prev) => prev ?? String(sanitizedTeams[0].id)
-					);
-				}
-			} catch (err) {
-				console.error(err);
-				if (isSubscribed) {
-					setError("Unable to load teams. Please try again shortly.");
-				}
-			} finally {
-				if (isSubscribed) {
-					setIsLoadingTeams(false);
-				}
-			}
-		}
-
-		loadTeams();
-
-		return () => {
-			isSubscribed = false;
-		};
-	}, []);
-
-	useEffect(() => {
-		if (!selectedTeamId) {
-			setTeamDetails(null);
-			setRoster([]);
-			return;
-		}
-
-		const teamId = selectedTeamId;
-		let isSubscribed = true;
-
-		async function loadTeamData() {
-			setIsLoadingRoster(true);
-			setError(null);
-			try {
-				const [team, rosterData] = await Promise.all([
-					getTeam(teamId),
-					getTeamRoster(teamId),
-				]);
-				if (!isSubscribed) return;
-				setTeamDetails(team ?? null);
-				const rosterRows = Array.isArray(rosterData)
-					? (rosterData as unknown as TeamRosterRow[])
-					: [];
-				const sanitizedRoster = rosterRows
-					.filter((entry): entry is TeamMembership =>
-						Boolean(entry?.person)
-					)
-					.map((entry) => ({
-						role: entry.role,
-						person: entry.person,
-					}));
-				setRoster(sanitizedRoster);
-			} catch (err) {
-				console.error(err);
-				if (isSubscribed) {
-					setError(
-						"Unable to load the selected team's roster. Please try again."
-					);
-					setRoster([]);
-					setTeamDetails(null);
-				}
-			} finally {
-				if (isSubscribed) {
-					setIsLoadingRoster(false);
-				}
-			}
-		}
-
-		loadTeamData();
-
-		return () => {
-			isSubscribed = false;
-		};
-	}, [selectedTeamId]);
-
-	const teamOptions = useMemo(
-		() =>
-			teams.map((team) => ({
-				value: String(team.id),
-				label: team.name,
-			})),
-		[teams]
-	);
+function TeamsPage() {
+	const {
+		teams,
+		teamOptions,
+		selectedTeamId,
+		setSelectedTeamId,
+		teamDetails,
+		roster,
+		rosterCount,
+		isLoadingTeams,
+		isLoading,
+		error,
+	} = useTeamsPageData();
 
 	const tableData = useMemo(
 		() =>
-			roster.map((entry) => {
-				const person = entry.person;
-				const fullName = person
-					? `${person.first_name ?? ""} ${
-							person.last_name ?? ""
-					  }`.trim() || "Unknown Player"
-					: "Unknown Player";
+			roster.map((entry: TeamRosterEntry) => {
+				const { person } = entry;
+				const fullName =
+					`${person.first_name ?? ""} ${
+						person.last_name ?? ""
+					}`.trim() || "Unknown Player";
 
 				return [
 					fullName,
-					entry.role ?? "—",
-					person?.email ?? "—",
-					person?.phone_mobile ?? "—",
+					entry.role ?? "-",
+					person.email ?? "-",
+					person.phone_mobile ?? "-",
 				];
 			}),
 		[roster]
 	);
 
-	const isLoading = isLoadingTeams || isLoadingRoster;
 	const hasTeams = teams.length > 0;
 	const showRoster =
 		!isLoading && !error && selectedTeamId && teamDetails !== null;
-	const rosterCount = roster.length;
 	const cardDescription =
 		teamDetails?.location ?? "WPPL team roster powered by Supabase";
 
@@ -199,15 +74,15 @@ function Teams() {
 						details={[
 							{
 								label: "Location",
-								value: teamDetails.location ?? "—",
+								value: teamDetails.location ?? "-",
 							},
 							{
 								label: "Home Court",
-								value: teamDetails.home_court ?? "—",
+								value: teamDetails.home_court ?? "-",
 							},
 							{
 								label: "Players",
-								value: rosterCount ? String(rosterCount) : "—",
+								value: rosterCount ? String(rosterCount) : "-",
 							},
 						]}
 					/>
@@ -225,4 +100,4 @@ function Teams() {
 	);
 }
 
-export default Teams;
+export default TeamsPage;
