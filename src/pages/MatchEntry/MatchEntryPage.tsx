@@ -48,7 +48,9 @@ type ToastState = {
 } | null;
 
 const DEFAULT_LINE_COUNT = 5;
-const GAME_COUNT = 3;
+const DEFAULT_GAMES_PER_LINE = 3;
+const MIN_GAMES_PER_LINE = 1;
+const COLUMN_WIDTH_CLASS = "px-3 py-4 w-[120px] min-w-[120px]";
 
 const makeLineId = () =>
 	typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -60,7 +62,10 @@ const createEmptyLine = (position: number): LineFormState => ({
 	lineNumber: position,
 	teamA: { player1Id: "", player2Id: "" },
 	teamH: { player1Id: "", player2Id: "" },
-	games: Array.from({ length: GAME_COUNT }, () => ({ home: "", away: "" })),
+	games: Array.from({ length: DEFAULT_GAMES_PER_LINE }, () => ({
+		home: "",
+		away: "",
+	})),
 	winnerTeamId: null,
 });
 
@@ -140,6 +145,15 @@ const MatchEntryPage = () => {
 	const [toast, setToast] = useState<ToastState>(null);
 	const [validationErrors, setValidationErrors] = useState<string[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const maxGames = useMemo(
+		() =>
+			lines.reduce(
+				(max, line) => Math.max(max, line.games.length),
+				MIN_GAMES_PER_LINE
+			),
+		[lines]
+	);
 
 	const homeTeam = useMemo(
 		() => teams.find((team) => team.id === homeTeamId),
@@ -353,6 +367,49 @@ const MatchEntryPage = () => {
 		);
 	};
 
+	const addGameToLine = (lineId: string) => {
+		setLines((prev) =>
+			prev.map((line) => {
+				if (line.id !== lineId) return line;
+				const games = [
+					...line.games,
+					{
+						home: "",
+						away: "",
+					},
+				];
+				const nextLine = { ...line, games };
+				return {
+					...nextLine,
+					winnerTeamId: determineWinner(
+						nextLine,
+						homeTeamId,
+						awayTeamId
+					),
+				};
+			})
+		);
+	};
+
+	const removeGameFromLine = (lineId: string) => {
+		setLines((prev) =>
+			prev.map((line) => {
+				if (line.id !== lineId) return line;
+				if (line.games.length <= MIN_GAMES_PER_LINE) return line;
+				const games = line.games.slice(0, -1);
+				const nextLine = { ...line, games };
+				return {
+					...nextLine,
+					winnerTeamId: determineWinner(
+						nextLine,
+						homeTeamId,
+						awayTeamId
+					),
+				};
+			})
+		);
+	};
+
 	const addLine = () => {
 		setLines((prev) => [...prev, createEmptyLine(prev.length + 1)]);
 	};
@@ -560,7 +617,10 @@ const MatchEntryPage = () => {
 		gameIndex: number,
 		game: GameScore
 	) => (
-		<td key={`${lineId}-game-${gameIndex}`} className="px-3 py-4 align-top">
+		<td
+			key={`${lineId}-game-${gameIndex}`}
+			className={`${COLUMN_WIDTH_CLASS} align-top`}
+		>
 			<div className="flex flex-col gap-2">
 				<label className="text-[11px] uppercase tracking-wide text-cyan-200">
 					Game {gameIndex + 1}
@@ -737,8 +797,8 @@ const MatchEntryPage = () => {
 								Lines
 							</p>
 							<p className="text-sm text-white/60">
-								Default view shows five lines — add or remove as
-								needed.
+								Default view shows five lines - adjust lines or
+								the number of games per line as needed.
 							</p>
 						</div>
 						<div className="flex gap-3">
@@ -764,23 +824,35 @@ const MatchEntryPage = () => {
 						<table className="w-full min-w-[960px] text-left text-sm text-white/80">
 							<thead>
 								<tr className="text-xs uppercase tracking-wide text-white/50">
-									<th className="px-3 py-3">Line</th>
-									<th className="px-3 py-3">Player 1 (A)</th>
-									<th className="px-3 py-3">Player 2 (A)</th>
-									<th className="px-3 py-3">Player 1 (H)</th>
-									<th className="px-3 py-3">Player 2 (H)</th>
+									<th className="px-3 py-3 w-[120px] min-w-[120px]">
+										Line
+									</th>
+									<th className="px-3 py-3 w-[120px] min-w-[120px]">
+										Player 1 (A)
+									</th>
+									<th className="px-3 py-3 w-[120px] min-w-[120px]">
+										Player 2 (A)
+									</th>
+									<th className="px-3 py-3 w-[120px] min-w-[120px]">
+										Player 1 (H)
+									</th>
+									<th className="px-3 py-3 w-[120px] min-w-[120px]">
+										Player 2 (H)
+									</th>
 									{Array.from(
-										{ length: GAME_COUNT },
+										{ length: maxGames },
 										(_, idx) => (
 											<th
 												key={`game-head-${idx}`}
-												className="px-3 py-3"
+												className="px-3 py-3 w-[120px] min-w-[120px]"
 											>
 												Game {idx + 1}
 											</th>
 										)
 									)}
-									<th className="px-3 py-3">Winner</th>
+									<th className="px-3 py-3 w-[120px] min-w-[120px]">
+										Winner
+									</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -789,10 +861,44 @@ const MatchEntryPage = () => {
 										key={line.id}
 										className="border-t border-white/5 text-sm text-white/80"
 									>
-										<td className="px-3 py-4 font-semibold text-white">
-											Line {line.lineNumber}
+										<td
+											className={`${COLUMN_WIDTH_CLASS} align-top font-semibold text-white`}
+										>
+											<div className="flex flex-col gap-2">
+												<span>
+													Line {line.lineNumber}
+												</span>
+												<div className="flex flex-wrap gap-2 text-[11px] font-normal">
+													<button
+														type="button"
+														onClick={() =>
+															addGameToLine(
+																line.id
+															)
+														}
+														className="rounded-lg border border-white/15 px-2 py-1 text-white/80 transition hover:border-green-400 hover:text-green-100"
+													>
+														+
+													</button>
+													<button
+														type="button"
+														onClick={() =>
+															removeGameFromLine(
+																line.id
+															)
+														}
+														className="rounded-lg border border-white/15 px-2 py-1 text-white/80 transition hover:border-red-400 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-40"
+														disabled={
+															line.games.length <=
+															MIN_GAMES_PER_LINE
+														}
+													>
+														-
+													</button>
+												</div>
+											</div>
 										</td>
-										<td className="px-3 py-4">
+										<td className={COLUMN_WIDTH_CLASS}>
 											{renderPlayerSelect(
 												line.id,
 												"teamA",
@@ -803,7 +909,7 @@ const MatchEntryPage = () => {
 												!awayTeamId
 											)}
 										</td>
-										<td className="px-3 py-4">
+										<td className={COLUMN_WIDTH_CLASS}>
 											{renderPlayerSelect(
 												line.id,
 												"teamA",
@@ -814,7 +920,7 @@ const MatchEntryPage = () => {
 												!awayTeamId
 											)}
 										</td>
-										<td className="px-3 py-4">
+										<td className={COLUMN_WIDTH_CLASS}>
 											{renderPlayerSelect(
 												line.id,
 												"teamH",
@@ -825,7 +931,7 @@ const MatchEntryPage = () => {
 												!homeTeamId
 											)}
 										</td>
-										<td className="px-3 py-4">
+										<td className={COLUMN_WIDTH_CLASS}>
 											{renderPlayerSelect(
 												line.id,
 												"teamH",
@@ -836,10 +942,31 @@ const MatchEntryPage = () => {
 												!homeTeamId
 											)}
 										</td>
-										{line.games.map((game, idx) =>
-											renderGameColumn(line.id, idx, game)
+										{Array.from(
+											{ length: maxGames },
+											(_, idx) => {
+												const game = line.games[idx];
+												if (game) {
+													return renderGameColumn(
+														line.id,
+														idx,
+														game
+													);
+												}
+												return (
+													<td
+														key={`${line.id}-placeholder-${idx}`}
+														className={`${COLUMN_WIDTH_CLASS} align-top`}
+													>
+														<div className="text-xs text-white/40">
+															Add a game to use
+															this slot
+														</div>
+													</td>
+												);
+											}
 										)}
-										<td className="px-3 py-4">
+										<td className={COLUMN_WIDTH_CLASS}>
 											<select
 												className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white focus:border-cyan-400 disabled:opacity-50"
 												value={line.winnerTeamId ?? ""}
