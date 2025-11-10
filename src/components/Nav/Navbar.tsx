@@ -1,29 +1,36 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { Text } from "../Typography";
 import { navRoutes } from "../../routes/appRoutes";
+
+const normalizePath = (path: string) => {
+	if (!path || path === "/") {
+		return "/";
+	}
+	return path.length > 1 ? path.replace(/\/+$/, "") : path;
+};
+
+const isRouteActive = (paths: string[], currentPath: string) => {
+	const normalizedCurrent = normalizePath(currentPath);
+
+	return paths.some((targetPath) => {
+		const normalizedTarget = normalizePath(targetPath);
+
+		if (normalizedTarget === "/") {
+			return normalizedCurrent === "/";
+		}
+
+		return (
+			normalizedCurrent === normalizedTarget ||
+			normalizedCurrent.startsWith(`${normalizedTarget}/`)
+		);
+	});
+};
 
 const Navbar: React.FC = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const location = useLocation();
-
-	const normalizePath = (path: string) =>
-		path.length > 1 ? path.replace(/\/+$/, "") : path;
 	const currentPath = normalizePath(location.pathname);
-
-	const isRouteActive = (targetPath: string) => {
-		const normalizedTarget = normalizePath(targetPath);
-		if (normalizedTarget === "/home" && currentPath === "/") {
-			return true;
-		}
-		if (normalizedTarget === "/") {
-			return currentPath === "/";
-		}
-		return (
-			currentPath === normalizedTarget ||
-			currentPath.startsWith(`${normalizedTarget}/`)
-		);
-	};
 
 	const handleLinkClick = () => {
 		setIsMenuOpen(false);
@@ -50,13 +57,17 @@ const Navbar: React.FC = () => {
 					{/* Right: Nav Links */}
 					<div className="hidden md:flex items-center gap-6">
 						{navRoutes.map((link) => {
-							const isActive = isRouteActive(link.path);
+							const active = isRouteActive(
+								link.activePaths,
+								currentPath
+							);
 							return (
-								<Link
+								<NavLink
 									key={link.key}
 									to={link.path}
 									onClick={handleLinkClick}
-									aria-current={isActive ? "page" : undefined}
+									aria-current={active ? "page" : undefined}
+									end={link.path === "/"}
 									className="group relative overflow-hidden rounded-full px-4 py-2 transition-all duration-200"
 								>
 									<span
@@ -68,7 +79,7 @@ const Navbar: React.FC = () => {
 										variant="nav"
 										size="xs"
 										className={`relative z-10 transition-colors duration-200 group-hover:text-neutral-50 ${
-											isActive ? "text-neutral-50" : ""
+											active ? "text-neutral-50" : ""
 										}`}
 									>
 										{link.label}
@@ -76,12 +87,10 @@ const Navbar: React.FC = () => {
 									<span
 										aria-hidden="true"
 										className={`pointer-events-none absolute inset-x-3 bottom-1 h-px bg-sky-300/70 transition-transform duration-300 group-hover:scale-x-100 ${
-											isActive
-												? "scale-x-100"
-												: "scale-x-0"
+											active ? "scale-x-100" : "scale-x-0"
 										}`}
 									/>
-								</Link>
+								</NavLink>
 							);
 						})}
 					</div>
@@ -131,15 +140,19 @@ const Navbar: React.FC = () => {
 				>
 					<div className="flex flex-col gap-2">
 						{navRoutes.map((link) => {
-							const isActive = isRouteActive(link.path);
+							const active = isRouteActive(
+								link.activePaths,
+								currentPath
+							);
 							return (
-								<Link
+								<NavLink
 									key={link.key}
 									to={link.path}
 									onClick={handleLinkClick}
-									aria-current={isActive ? "page" : undefined}
+									aria-current={active ? "page" : undefined}
+									end={link.path === "/"}
 									className={`group rounded-lg px-3 py-2 transition-colors duration-200 hover:bg-sky-500/15 ${
-										isActive ? "bg-sky-500/15" : ""
+										active ? "bg-sky-500/15" : ""
 									}`}
 								>
 									<Text
@@ -147,12 +160,12 @@ const Navbar: React.FC = () => {
 										variant="nav"
 										size="sm"
 										className={`transition-colors duration-200 group-hover:text-neutral-50 ${
-											isActive ? "text-neutral-50" : ""
+											active ? "text-neutral-50" : ""
 										}`}
 									>
 										{link.label}
 									</Text>
-								</Link>
+								</NavLink>
 							);
 						})}
 					</div>

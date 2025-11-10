@@ -58,6 +58,7 @@ export type NavRoute = {
 	key: string;
 	label: string;
 	path: string;
+	activePaths: string[];
 };
 
 const normalizeNavPath = (path: string) =>
@@ -82,8 +83,21 @@ export const appRoutes: AppRouteConfig[] = (
 
 export const navRoutes: NavRoute[] = appRoutes
 	.filter(({ showInNav }) => showInNav)
-	.map(({ key, label, navPath, path }) => ({
-		key,
-		label,
-		path: normalizeNavPath(navPath ?? path),
-	}));
+	.map((route) => {
+		const canonicalNavPath = normalizeNavPath(
+			route.navPath ?? (route.index ? "/" : route.path)
+		);
+		const activePaths = Array.from(
+			new Set([
+				canonicalNavPath,
+				...(route.index ? [normalizeNavPath(route.path)] : []),
+			])
+		);
+
+		return {
+			key: route.key,
+			label: route.label,
+			path: canonicalNavPath,
+			activePaths,
+		};
+	});
