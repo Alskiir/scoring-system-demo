@@ -6,7 +6,6 @@ import {
 	AboutPage,
 	HomePage,
 	MatchEntryPage,
-	ScoresPage,
 	StandingsPage,
 	TeamsPage,
 } from "./pages";
@@ -19,7 +18,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 				<Route path="/" element={<App />}>
 					<Route index element={<HomePage />} />
 					<Route path="home" element={<HomePage />} />
-					<Route path="scores" element={<ScoresPage />} />
 					<Route path="standings" element={<StandingsPage />} />
 					<Route path="teams" element={<TeamsPage />} />
 					<Route path="match-entry" element={<MatchEntryPage />} />
