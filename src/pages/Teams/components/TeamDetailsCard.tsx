@@ -19,10 +19,6 @@ function TeamDetailsCard({ team, rosterCount }: TeamDetailsCardProps) {
 					value: team.location ?? "-",
 				},
 				{
-					label: "Home Court",
-					value: team.home_court ?? "-",
-				},
-				{
 					label: "Players",
 					value: rosterCount ? String(rosterCount) : "-",
 				},

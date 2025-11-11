@@ -2,7 +2,6 @@ export type TeamRecord = {
 	id: string;
 	name: string;
 	location?: string | null;
-	home_court?: string | null;
 };
 
 export type PersonRecord = {

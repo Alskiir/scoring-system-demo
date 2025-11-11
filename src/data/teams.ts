@@ -1,10 +1,15 @@
 import { supabase } from "../lib/supabaseClient";
 import { resolveSupabase } from "../lib/supabaseQuery";
 
+const TEAM_SUMMARY_COLUMNS = "id,name,location";
+
 // Fetch all teams
 export async function getTeams() {
 	return resolveSupabase(
-		supabase.from("team").select("*").order("name", { ascending: true }),
+		supabase
+			.from("team")
+			.select(TEAM_SUMMARY_COLUMNS)
+			.order("name", { ascending: true }),
 		{ fallbackValue: [] }
 	);
 }
@@ -12,7 +17,11 @@ export async function getTeams() {
 // Get a single team by ID
 export async function getTeam(id: string) {
 	return resolveSupabase(
-		supabase.from("team").select("*").eq("id", id).single(),
+		supabase
+			.from("team")
+			.select(TEAM_SUMMARY_COLUMNS)
+			.eq("id", id)
+			.single(),
 		{ allowNull: true }
 	);
 }
@@ -43,7 +52,11 @@ export async function getTeamRoster(teamId: string) {
 // Search teams by name (for filters/search)
 export async function searchTeams(term: string) {
 	return resolveSupabase(
-		supabase.from("team").select("*").ilike("name", `%${term}%`),
+		supabase
+			.from("team")
+			.select(TEAM_SUMMARY_COLUMNS)
+			.ilike("name", `%${term}%`)
+			.limit(25),
 		{ fallbackValue: [] }
 	);
 }

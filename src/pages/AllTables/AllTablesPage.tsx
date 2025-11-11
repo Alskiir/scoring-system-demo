@@ -68,7 +68,9 @@ function AllTablesPage() {
 		useState<DatabaseTableName | null>(() =>
 			hasTables ? availableTables[0]!.name : null
 		);
-	const [rows, setRows] = useState<Record<string, unknown>[]>([]);
+	const [tableCache, setTableCache] = useState<
+		Partial<Record<DatabaseTableName, Record<string, unknown>[]>>
+	>({});
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [reloadVersion, setReloadVersion] = useState(0);
@@ -76,10 +78,15 @@ function AllTablesPage() {
 	const activeDescriptor = selectedTable
 		? descriptorMap.get(selectedTable)
 		: undefined;
+	const visibleRows = useMemo(() => {
+		if (!selectedTable) return [];
+		return tableCache[selectedTable] ?? [];
+	}, [selectedTable, tableCache]);
+	const hasCachedRows = visibleRows.length > 0;
 
 	const columnOrder = useMemo(
-		() => buildColumnOrder(rows, activeDescriptor),
-		[rows, activeDescriptor]
+		() => buildColumnOrder(visibleRows, activeDescriptor),
+		[visibleRows, activeDescriptor]
 	);
 
 	useEffect(() => {
@@ -96,7 +103,11 @@ function AllTablesPage() {
 			try {
 				const data = await fetchTableRows(tableName);
 				if (!isMounted) return;
-				setRows(Array.isArray(data) ? data : []);
+				const normalized = Array.isArray(data) ? data : [];
+				setTableCache((previous) => ({
+					...previous,
+					[tableName]: normalized,
+				}));
 			} catch (err) {
 				console.error(err);
 				if (!isMounted) return;
@@ -106,7 +117,6 @@ function AllTablesPage() {
 						? err.message
 						: "Unable to load table data.";
 				setError(message);
-				setRows([]);
 			} finally {
 				if (isMounted) {
 					setIsLoading(false);
@@ -126,9 +136,12 @@ function AllTablesPage() {
 	};
 
 	const tableHeaders = columnOrder.map((column) => formatColumnLabel(column));
-	const tableRows = rows.map((row) =>
+	const tableRows = visibleRows.map((row) =>
 		columnOrder.map((column) => formatCellValue(row[column]))
 	);
+	const isLoadingWithoutCache = isLoading && !hasCachedRows;
+	const showBlockingError = Boolean(error) && !hasCachedRows;
+	const showInlineError = Boolean(error) && hasCachedRows;
 
 	const actions = hasTables ? (
 		<div className="flex flex-col gap-2 text-right">
@@ -174,15 +187,15 @@ function AllTablesPage() {
 		content = (
 			<GlassCard description="Choose a table from the dropdown to inspect its rows." />
 		);
-	} else if (error) {
+	} else if (showBlockingError) {
 		content = (
 			<GlassCard
 				title="Unable to load data"
-				description={error}
+				description={error ?? undefined}
 				footer="Confirm your Supabase credentials are configured in the .env file."
 			/>
 		);
-	} else if (isLoading) {
+	} else if (isLoadingWithoutCache) {
 		content = (
 			<GlassCard
 				description={`Loading ${
@@ -193,6 +206,13 @@ function AllTablesPage() {
 	} else {
 		content = (
 			<div className="flex flex-col gap-6">
+				{showInlineError ? (
+					<GlassCard
+						title="Unable to refresh data"
+						description={error ?? undefined}
+						footer="Showing the most recently cached rows for this table."
+					/>
+				) : null}
 				<GlassCard
 					title={activeDescriptor?.label ?? "Table details"}
 					description={
@@ -202,9 +222,12 @@ function AllTablesPage() {
 					details={[
 						{
 							label: "Table name",
-							value: activeDescriptor?.name ?? "—",
+							value: activeDescriptor?.name ?? "-",
 						},
-						{ label: "Rows loaded", value: String(rows.length) },
+						{
+							label: "Rows loaded",
+							value: String(visibleRows.length),
+						},
 						{ label: "Columns", value: String(columnOrder.length) },
 					]}
 					footer="Results show the latest data returned by Supabase. Large tables may be truncated depending on server limits."

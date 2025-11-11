@@ -45,9 +45,8 @@ export function useTeamsPageData(
 				const data = await getTeams();
 				if (!isMounted) return;
 
-				const sanitizedTeams = (data ?? []).filter(
-					(team): team is TeamRecord =>
-						Boolean(team?.id && team?.name)
+				const sanitizedTeams = (data ?? []).filter((team) =>
+					Boolean(team?.id && team?.name)
 				);
 
 				setTeams(sanitizedTeams);
