@@ -1,7 +1,19 @@
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Text } from "../../../components";
-import { COLUMN_WIDTH_CLASS } from "../constants";
+import {
+	BASE_TABLE_WEIGHT,
+	COLUMN_WIDTH_CLASS,
+	FALLBACK_UNIT_WIDTH,
+	GAME_COLUMN_WEIGHT,
+	GAME_COLUMN_WIDTH_CLASS,
+	LINE_COLUMN_WEIGHT,
+	LINE_COLUMN_WIDTH_CLASS,
+	PLAYER_COLUMN_WEIGHT,
+	STATIC_COLUMN_WEIGHT,
+	WINNER_COLUMN_WEIGHT,
+} from "../constants";
 import type { LineFormState, PlayerOption, TeamOption } from "../types";
-import LineRow from "./LineRow";
+import LineRow, { type LineRowColumnWidths } from "./LineRow";
 
 type LinesTableProps = {
 	lines: LineFormState[];
@@ -47,107 +59,126 @@ const LinesTable = ({
 	onPlayerChange,
 	onGameScoreChange,
 	onWinnerChange,
-}: LinesTableProps) => (
-	<section className="overflow-hidden rounded-3xl border border-(--border-strong) bg-(--surface-card)">
-		<div className="flex flex-col gap-4 border-b border-(--border-subtle) bg-(--surface-panel) px-4 py-5 md:flex-row md:items-center md:justify-between md:px-6 md:py-6">
-			<div className="space-y-2">
-				<Text as="p" variant="strong" size="lg">
-					Lines
-				</Text>
-				<Text variant="muted" size="sm" className="max-w-3xl">
-					Default view shows five lines.
-					<br />
-					Adjust the number of lines or games per line to match the
-					match sheet you are entering.
-				</Text>
-			</div>
-			<div className="flex flex-wrap gap-3">
-				<button
-					type="button"
-					onClick={onRemoveLine}
-					className="rounded-2xl border border-(--border-subtle) bg-(--surface-card) px-4 py-2 text-sm text-(--text-secondary) transition-colors duration-200 hover:border-(--danger) hover:text-(--danger) disabled:cursor-not-allowed disabled:opacity-50"
-					disabled={lines.length === 1}
-				>
-					Remove Line
-				</button>
-				<button
-					type="button"
-					onClick={onAddLine}
-					className="rounded-2xl border border-(--border-highlight) px-4 py-2 text-sm font-semibold text-(--accent) transition-colors duration-200 hover:bg-(--surface-hover)"
-				>
-					Add Line
-				</button>
-			</div>
-		</div>
+}: LinesTableProps) => {
+	const scrollContainerRef = useRef<HTMLDivElement>(null);
+	const [containerWidth, setContainerWidth] = useState(0);
 
-		<div className="overflow-x-auto">
-			<table className="w-full min-w-[960px] table-auto text-sm text-(--text-primary)">
-				<thead className="bg-(--surface-panel)">
-					<tr>
-						<th
-							className={`${COLUMN_WIDTH_CLASS} text-center first:text-left`}
-						>
-							<Text
-								as="span"
-								variant="tableHeader"
-								size="xs"
-								align="left"
-							>
-								Line
-							</Text>
-						</th>
-						<th
-							className={`${COLUMN_WIDTH_CLASS} text-center first:text-left`}
-						>
-							<Text
-								as="span"
-								variant="tableHeader"
-								size="xs"
-								align="center"
-							>
-								Player 1 (A)
-							</Text>
-						</th>
-						<th
-							className={`${COLUMN_WIDTH_CLASS} text-center first:text-left`}
-						>
-							<Text
-								as="span"
-								variant="tableHeader"
-								size="xs"
-								align="center"
-							>
-								Player 2 (A)
-							</Text>
-						</th>
-						<th
-							className={`${COLUMN_WIDTH_CLASS} text-center first:text-left`}
-						>
-							<Text
-								as="span"
-								variant="tableHeader"
-								size="xs"
-								align="center"
-							>
-								Player 1 (H)
-							</Text>
-						</th>
-						<th
-							className={`${COLUMN_WIDTH_CLASS} text-center first:text-left`}
-						>
-							<Text
-								as="span"
-								variant="tableHeader"
-								size="xs"
-								align="center"
-							>
-								Player 2 (H)
-							</Text>
-						</th>
-						{Array.from({ length: maxGames }, (_, idx) => (
+	useEffect(() => {
+		const node = scrollContainerRef.current;
+		if (!node) {
+			return;
+		}
+
+		const updateWidth = () => {
+			const nextWidth = node.getBoundingClientRect().width;
+			setContainerWidth((prev) =>
+				Math.abs(prev - nextWidth) > 1 ? nextWidth : prev
+			);
+		};
+
+		updateWidth();
+
+		if (typeof window === "undefined") {
+			return;
+		}
+
+		if (typeof ResizeObserver === "undefined") {
+			window.addEventListener("resize", updateWidth);
+			return () => window.removeEventListener("resize", updateWidth);
+		}
+
+		const observer = new ResizeObserver((entries) => {
+			if (!entries.length) {
+				return;
+			}
+			const entry = entries[0];
+			setContainerWidth(entry.contentRect.width);
+		});
+
+		observer.observe(node);
+
+		return () => observer.disconnect();
+	}, []);
+
+	const unitWidth =
+		containerWidth > 0
+			? containerWidth / BASE_TABLE_WEIGHT
+			: FALLBACK_UNIT_WIDTH;
+
+	const columnWidths: LineRowColumnWidths = useMemo(
+		() => ({
+			line: LINE_COLUMN_WEIGHT * unitWidth,
+			player: PLAYER_COLUMN_WEIGHT * unitWidth,
+			game: GAME_COLUMN_WEIGHT * unitWidth,
+			winner: WINNER_COLUMN_WEIGHT * unitWidth,
+		}),
+		[unitWidth]
+	);
+
+	const getColumnStyle = (value: number) => ({
+		width: `${value}px`,
+		minWidth: `${value}px`,
+	});
+
+	const totalWeight = STATIC_COLUMN_WEIGHT + maxGames * GAME_COLUMN_WEIGHT;
+	const tableWidth = Math.max(containerWidth, totalWeight * unitWidth || 0);
+
+	return (
+		<section className="overflow-hidden rounded-3xl border border-(--border-strong) bg-(--surface-card)">
+			<div className="flex flex-col gap-4 border-b border-(--border-subtle) bg-(--surface-panel) px-4 py-5 md:flex-row md:items-center md:justify-between md:px-6 md:py-6">
+				<div className="space-y-2">
+					<Text as="p" variant="strong" size="lg">
+						Lines
+					</Text>
+					<Text variant="muted" size="sm" className="max-w-3xl">
+						Default view shows five lines.
+						<br />
+						Adjust the number of lines or games per line to match
+						the match sheet you are entering.
+					</Text>
+				</div>
+				<div className="flex flex-wrap gap-3">
+					<button
+						type="button"
+						onClick={onRemoveLine}
+						className="rounded-2xl border border-(--border-subtle) bg-(--surface-card) px-4 py-2 text-sm text-(--text-secondary) transition-colors duration-200 hover:border-(--danger) hover:text-(--danger) disabled:cursor-not-allowed disabled:opacity-50"
+						disabled={lines.length === 1}
+					>
+						Remove Line
+					</button>
+					<button
+						type="button"
+						onClick={onAddLine}
+						className="rounded-2xl border border-(--border-highlight) px-4 py-2 text-sm font-semibold text-(--accent) transition-colors duration-200 hover:bg-(--surface-hover)"
+					>
+						Add Line
+					</button>
+				</div>
+			</div>
+
+			<div className="overflow-x-auto" ref={scrollContainerRef}>
+				<table
+					className="table-auto text-sm text-(--text-primary)"
+					style={{ width: `${tableWidth || 0}px` }}
+				>
+					<thead className="bg-(--surface-panel)">
+						<tr>
 							<th
-								key={`game-head-${idx}`}
+								className={`${LINE_COLUMN_WIDTH_CLASS} text-center first:text-left`}
+								style={getColumnStyle(columnWidths.line)}
+							>
+								<Text
+									as="span"
+									variant="tableHeader"
+									size="xs"
+									align="left"
+								>
+									Line
+								</Text>
+							</th>
+							<th
 								className={`${COLUMN_WIDTH_CLASS} text-center first:text-left`}
+								style={getColumnStyle(columnWidths.player)}
 							>
 								<Text
 									as="span"
@@ -155,47 +186,78 @@ const LinesTable = ({
 									size="xs"
 									align="center"
 								>
-									Game {idx + 1}
+									Team A Players
 								</Text>
 							</th>
-						))}
-						<th
-							className={`${COLUMN_WIDTH_CLASS} text-center first:text-left`}
-						>
-							<Text
-								as="span"
-								variant="tableHeader"
-								size="xs"
-								align="center"
+							<th
+								className={`${COLUMN_WIDTH_CLASS} text-center first:text-left`}
+								style={getColumnStyle(columnWidths.player)}
 							>
-								Winner
-							</Text>
-						</th>
-					</tr>
-				</thead>
-				<tbody className="divide-y divide-(--border-subtle)">
-					{lines.map((line) => (
-						<LineRow
-							key={line.id}
-							line={line}
-							maxGames={maxGames}
-							homeTeamId={homeTeamId}
-							awayTeamId={awayTeamId}
-							homeTeam={homeTeam}
-							awayTeam={awayTeam}
-							homePlayers={homePlayers}
-							awayPlayers={awayPlayers}
-							onPlayerChange={onPlayerChange}
-							onGameScoreChange={onGameScoreChange}
-							onWinnerChange={onWinnerChange}
-							onAddGame={onAddGameToLine}
-							onRemoveGame={onRemoveGameFromLine}
-						/>
-					))}
-				</tbody>
-			</table>
-		</div>
-	</section>
-);
+								<Text
+									as="span"
+									variant="tableHeader"
+									size="xs"
+									align="center"
+								>
+									Team H Players
+								</Text>
+							</th>
+							{Array.from({ length: maxGames }, (_, idx) => (
+								<th
+									key={`game-head-${idx}`}
+									className={`${GAME_COLUMN_WIDTH_CLASS} text-center first:text-left`}
+									style={getColumnStyle(columnWidths.game)}
+								>
+									<Text
+										as="span"
+										variant="tableHeader"
+										size="xs"
+										align="center"
+									>
+										Game {idx + 1}
+									</Text>
+								</th>
+							))}
+							<th
+								className={`${COLUMN_WIDTH_CLASS} text-center first:text-left`}
+								style={getColumnStyle(columnWidths.winner)}
+							>
+								<Text
+									as="span"
+									variant="tableHeader"
+									size="xs"
+									align="center"
+								>
+									Winner
+								</Text>
+							</th>
+						</tr>
+					</thead>
+					<tbody className="divide-y divide-(--border-subtle)">
+						{lines.map((line) => (
+							<LineRow
+								key={line.id}
+								line={line}
+								maxGames={maxGames}
+								homeTeamId={homeTeamId}
+								awayTeamId={awayTeamId}
+								homeTeam={homeTeam}
+								awayTeam={awayTeam}
+								homePlayers={homePlayers}
+								awayPlayers={awayPlayers}
+								onPlayerChange={onPlayerChange}
+								onGameScoreChange={onGameScoreChange}
+								onWinnerChange={onWinnerChange}
+								onAddGame={onAddGameToLine}
+								onRemoveGame={onRemoveGameFromLine}
+								columnWidths={columnWidths}
+							/>
+						))}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	);
+};
 
 export default LinesTable;
