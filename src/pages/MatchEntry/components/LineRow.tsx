@@ -130,7 +130,7 @@ const LineRow = ({
 					<span className="text-base text-(--text-primary)">
 						Line {line.lineNumber}
 					</span>
-					<div className="flex flex-wrap gap-2 text-xs font-normal">
+					<div className="flex flex-wrap gap-2 text-xs font-normal mt-4 ml-1">
 						<button
 							type="button"
 							onClick={() => onAddGame(line.id)}
