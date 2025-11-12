@@ -16,7 +16,7 @@ const PlayerSelect = ({
 	onChange,
 }: PlayerSelectProps) => (
 	<select
-		className="md-input md-select"
+		className="md-input md-input--compact md-select"
 		value={value}
 		onChange={(event) => onChange(event.target.value)}
 		disabled={disabled}

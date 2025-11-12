@@ -21,7 +21,7 @@ const GameColumn = ({
 	onScoreChange,
 	columnWidth,
 }: GameColumnProps) => {
-	const inputClass = "md-input pr-12";
+	const inputClass = "md-input md-input--compact pr-12";
 
 	const handleStep = (field: "home" | "away", delta: 1 | -1) => {
 		const currentValue = Number(game[field] || 0);
@@ -54,7 +54,7 @@ const GameColumn = ({
 					}
 					className={inputClass}
 				/>
-				<div className="absolute inset-y-1 right-1 flex w-10 flex-col overflow-hidden rounded-[18px] border border-(--border-subtle) bg-(--surface-panel)">
+				<div className="absolute inset-y-1 right-1 flex w-6 flex-col overflow-hidden rounded-[18px] border border-(--border-subtle) bg-(--surface-panel)">
 					<button
 						type="button"
 						className="flex-1 text-(--text-secondary) transition-colors duration-150 hover:bg-(--surface-hover) hover:text-(--accent)"

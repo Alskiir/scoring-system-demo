@@ -134,14 +134,14 @@ const LineRow = ({
 						<button
 							type="button"
 							onClick={() => onAddGame(line.id)}
-							className="md-outlined-button px-3 py-2 text-xs"
+							className="md-outlined-button md-button--compact px-3 py-2 text-xs"
 						>
 							+ Game
 						</button>
 						<button
 							type="button"
 							onClick={() => onRemoveGame(line.id)}
-							className="md-outlined-button px-3 py-2 text-xs"
+							className="md-outlined-button md-button--compact px-3 py-2 text-xs"
 							disabled={line.games.length <= MIN_GAMES_PER_LINE}
 						>
 							- Game
@@ -195,7 +195,7 @@ const LineRow = ({
 				style={getColumnStyle(columnWidths.winner)}
 			>
 				<select
-					className="md-input md-select"
+					className="md-input md-input--compact md-select"
 					value={line.winnerTeamId ?? ""}
 					onChange={(event) =>
 						onWinnerChange(line.id, event.target.value)
