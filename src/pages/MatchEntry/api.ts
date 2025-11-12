@@ -1,15 +1,16 @@
 import { supabase } from "../../lib/supabaseClient";
 import { resolveSupabase } from "../../lib/supabaseQuery";
+import type { PersonRecord, SupabaseRelation } from "../../types/league";
+import {
+	formatFullName,
+	takeFirstRelationValue,
+} from "../../utils/dataTransforms";
 import type { LineFormState, PlayerOption, TeamOption } from "./types";
 
-type PlayerRecord = {
-	id: string;
-	first_name: string;
-	last_name: string;
-};
+type PlayerRecord = Pick<PersonRecord, "id" | "first_name" | "last_name">;
 
 type TeamMembershipRow = {
-	person: PlayerRecord | PlayerRecord[] | null;
+	person: SupabaseRelation<PlayerRecord>;
 };
 
 export const fetchTeams = async (): Promise<TeamOption[]> => {
@@ -41,15 +42,12 @@ export const fetchPlayersForTeam = async (
 
 	return typedRows
 		.map((row) => {
-			const personCandidate = row.person;
-			const person = Array.isArray(personCandidate)
-				? personCandidate[0] ?? null
-				: personCandidate;
+			const person = takeFirstRelationValue(row.person);
 
 			if (!person) return null;
 			return {
 				id: person.id,
-				fullName: `${person.first_name} ${person.last_name}`,
+				fullName: formatFullName(person.first_name, person.last_name),
 			};
 		})
 		.filter((player): player is PlayerOption => Boolean(player));

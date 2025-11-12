@@ -7,6 +7,7 @@ import {
 import type { LineFormState, PlayerOption, TeamOption } from "../types";
 import GameColumn from "./GameColumn";
 import PlayerSelect from "./PlayerSelect";
+import { getColumnStyle } from "./columnSizing";
 
 export type LineRowColumnWidths = {
 	line: number;
@@ -58,11 +59,6 @@ const LineRow = ({
 	onRemoveGame,
 	columnWidths,
 }: LineRowProps) => {
-	const getColumnStyle = (value: number) => ({
-		width: `${value}px`,
-		minWidth: `${value}px`,
-	});
-
 	const renderTeamPlayers = (
 		side: "teamA" | "teamH",
 		label: string,

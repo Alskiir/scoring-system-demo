@@ -1,13 +1,10 @@
-export type TeamOption = {
-	id: string;
-	name: string;
-	location?: string | null;
-};
+import type {
+	PlayerOption as SharedPlayerOption,
+	TeamRecord,
+} from "../../types/league";
 
-export type PlayerOption = {
-	id: string;
-	fullName: string;
-};
+export type TeamOption = TeamRecord;
+export type PlayerOption = SharedPlayerOption;
 
 export type GameScore = {
 	home: string;

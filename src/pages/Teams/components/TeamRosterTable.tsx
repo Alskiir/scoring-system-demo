@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Table } from "../../../components";
+import { formatFullName } from "../../../utils/dataTransforms";
 import type { TeamRosterEntry } from "../types";
 
 const tableHeaders = ["Player", "Role", "Email", "Phone"];
@@ -28,13 +29,6 @@ function TeamRosterTable({ roster }: TeamRosterTableProps) {
 	);
 
 	return <Table headers={tableHeaders} data={tableData} />;
-}
-
-function formatFullName(firstName?: string | null, lastName?: string | null) {
-	const first = firstName?.trim() ?? "";
-	const last = lastName?.trim() ?? "";
-	const combined = `${first} ${last}`.trim();
-	return combined.length ? combined : "Unknown Player";
 }
 
 export default TeamRosterTable;

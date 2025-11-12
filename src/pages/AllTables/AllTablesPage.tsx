@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { GlassCard, PageShell, Table, Text } from "../../components";
 import {
+	formatTableCellValue,
+	formatTableColumnLabel,
+} from "../../utils/dataTransforms";
+import {
 	databaseTables,
 	fetchTableRows,
 	type DatabaseTableName,
@@ -10,26 +14,6 @@ import {
 const descriptorMap = new Map<DatabaseTableName, TableDescriptor>(
 	databaseTables.map((descriptor) => [descriptor.name, descriptor])
 );
-
-const formatColumnLabel = (column: string) =>
-	column.replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase());
-
-const formatCellValue = (value: unknown): string => {
-	if (value === null || typeof value === "undefined") {
-		return "—";
-	}
-
-	if (typeof value === "object") {
-		try {
-			return JSON.stringify(value);
-		} catch {
-			return String(value);
-		}
-	}
-
-	const stringValue = String(value);
-	return stringValue.length ? stringValue : "—";
-};
 
 const buildColumnOrder = (
 	rows: Record<string, unknown>[],
@@ -135,9 +119,11 @@ function AllTablesPage() {
 		setReloadVersion((prev) => prev + 1);
 	};
 
-	const tableHeaders = columnOrder.map((column) => formatColumnLabel(column));
+	const tableHeaders = columnOrder.map((column) =>
+		formatTableColumnLabel(column)
+	);
 	const tableRows = visibleRows.map((row) =>
-		columnOrder.map((column) => formatCellValue(row[column]))
+		columnOrder.map((column) => formatTableCellValue(row[column]))
 	);
 	const isLoadingWithoutCache = isLoading && !hasCachedRows;
 	const showBlockingError = Boolean(error) && !hasCachedRows;

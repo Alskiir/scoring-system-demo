@@ -14,6 +14,7 @@ import {
 } from "../constants";
 import type { LineFormState, PlayerOption, TeamOption } from "../types";
 import LineRow, { type LineRowColumnWidths } from "./LineRow";
+import { getColumnStyle } from "./columnSizing";
 
 type LinesTableProps = {
 	lines: LineFormState[];
@@ -114,11 +115,6 @@ const LinesTable = ({
 		}),
 		[unitWidth]
 	);
-
-	const getColumnStyle = (value: number) => ({
-		width: `${value}px`,
-		minWidth: `${value}px`,
-	});
 
 	const totalWeight = STATIC_COLUMN_WEIGHT + maxGames * GAME_COLUMN_WEIGHT;
 	const tableWidth = Math.max(containerWidth, totalWeight * unitWidth || 0);

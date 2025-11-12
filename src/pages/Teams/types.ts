@@ -1,29 +1,10 @@
-export type TeamRecord = {
-	id: string;
-	name: string;
-	location?: string | null;
-};
+import type {
+	PersonRecord,
+	TeamMembership,
+	TeamRecord,
+	TeamRosterEntry,
+	TeamSelectOption,
+} from "../../types/league";
 
-export type PersonRecord = {
-	id: string;
-	first_name: string;
-	last_name: string;
-	email: string | null;
-	phone_mobile: string | null;
-	birthday?: string | null;
-};
-
-export type TeamMembership = {
-	role: string | null;
-	person: PersonRecord | PersonRecord[] | null;
-};
-
-export type TeamRosterEntry = {
-	role: string | null;
-	person: PersonRecord;
-};
-
-export type TeamOption = {
-	value: string;
-	label: string;
-};
+export type { TeamRecord, PersonRecord, TeamMembership, TeamRosterEntry };
+export type TeamOption = TeamSelectOption;

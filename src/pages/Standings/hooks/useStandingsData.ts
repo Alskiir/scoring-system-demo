@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 import { getStandings } from "../../../data";
+import {
+	coerceIdentifierFromRecord,
+	coerceNumber,
+	coerceString,
+} from "../../../utils/dataTransforms";
 
 type RawStandingRecord = Record<string, unknown>;
 
@@ -36,15 +41,19 @@ export function useStandingsData(): UseStandingsDataResult {
 
 				const sanitizedStandings: StandingRecord[] = Array.isArray(data)
 					? (data as RawStandingRecord[]).map((row) => ({
-							team_id: getIdentifier(row),
+							team_id: coerceIdentifierFromRecord(
+								row,
+								"team_id",
+								"id"
+							),
 							team_name:
-								getString(row["team_name"]) ??
-								getString(row["name"]) ??
+								coerceString(row["team_name"]) ??
+								coerceString(row["name"]) ??
 								"Unknown Team",
-							matches_won: getNumber(row["matches_won"]),
-							matches_lost: getNumber(row["matches_lost"]),
-							win_percentage: getNumber(row["win_percentage"]),
-							total_points: getNumber(row["total_points"]),
+							matches_won: coerceNumber(row["matches_won"]),
+							matches_lost: coerceNumber(row["matches_lost"]),
+							win_percentage: coerceNumber(row["win_percentage"]),
+							total_points: coerceNumber(row["total_points"]),
 					  }))
 					: [];
 
@@ -78,35 +87,4 @@ export function useStandingsData(): UseStandingsDataResult {
 	}, []);
 
 	return { standings, isLoading, error };
-}
-
-function getString(value: unknown): string | null {
-	if (typeof value === "string") {
-		const trimmedValue = value.trim();
-		return trimmedValue.length ? trimmedValue : null;
-	}
-	return null;
-}
-
-function getNumber(value: unknown): number | null {
-	if (typeof value === "number" && Number.isFinite(value)) {
-		return value;
-	}
-
-	if (typeof value === "string") {
-		const parsed = Number(value);
-		return Number.isFinite(parsed) ? parsed : null;
-	}
-
-	return null;
-}
-
-function getIdentifier(row: RawStandingRecord): string | number | null {
-	const candidate = row["team_id"] ?? row["id"];
-
-	if (typeof candidate === "string" || typeof candidate === "number") {
-		return candidate;
-	}
-
-	return null;
 }

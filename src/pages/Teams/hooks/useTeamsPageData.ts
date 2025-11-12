@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getTeam, getTeamRoster, getTeams } from "../../../data";
+import { takeFirstRelationValue } from "../../../utils/dataTransforms";
 import type {
 	TeamMembership,
 	TeamOption,
@@ -102,10 +103,9 @@ export function useTeamsPageData(
 				const sanitizedRoster = Array.isArray(rosterData)
 					? (rosterData as TeamMembership[])
 							.map((entry) => {
-								const personCandidate = entry.person;
-								const person = Array.isArray(personCandidate)
-									? personCandidate[0] ?? null
-									: personCandidate;
+								const person = takeFirstRelationValue(
+									entry.person
+								);
 
 								if (!person) {
 									return null;
