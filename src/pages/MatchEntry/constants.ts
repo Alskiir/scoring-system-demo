@@ -4,9 +4,9 @@ export const MIN_GAMES_PER_LINE = 1;
 export const COLUMN_WIDTH_CLASS = "px-5 py-5";
 export const LINE_COLUMN_WIDTH_CLASS = "px-4 py-5";
 export const GAME_COLUMN_WIDTH_CLASS = "px-3 py-5";
-export const LINE_COLUMN_WEIGHT = 12;
+export const LINE_COLUMN_WEIGHT = 8;
 export const PLAYER_COLUMN_WEIGHT = 20;
-export const GAME_COLUMN_WEIGHT = 11;
+export const GAME_COLUMN_WEIGHT = 12;
 export const WINNER_COLUMN_WEIGHT = 20;
 export const STATIC_COLUMN_WEIGHT =
 	LINE_COLUMN_WEIGHT + WINNER_COLUMN_WEIGHT + PLAYER_COLUMN_WEIGHT * 2;

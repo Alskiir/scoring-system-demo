@@ -2,7 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
 import { fetchPlayersForTeam, fetchTeams, saveMatch } from "../api";
-import { DEFAULT_LINE_COUNT, MIN_GAMES_PER_LINE } from "../constants";
+import {
+	DEFAULT_GAMES_PER_LINE,
+	DEFAULT_LINE_COUNT,
+	MIN_GAMES_PER_LINE,
+} from "../constants";
 import {
 	createEmptyLine,
 	determineWinner,
@@ -96,14 +100,13 @@ export const useMatchEntryForm = () => {
 		});
 	};
 
-	const maxGames = useMemo(
-		() =>
-			lines.reduce(
-				(max, line) => Math.max(max, line.games.length),
-				MIN_GAMES_PER_LINE
-			),
-		[lines]
-	);
+	const maxGames = useMemo(() => {
+		const maxFromLines = lines.reduce(
+			(max, line) => Math.max(max, line.games.length),
+			MIN_GAMES_PER_LINE
+		);
+		return Math.max(DEFAULT_GAMES_PER_LINE, maxFromLines);
+	}, [lines]);
 
 	const homeTeam = useMemo(
 		() => teams.find((team) => team.id === homeTeamId),
