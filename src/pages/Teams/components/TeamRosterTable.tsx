@@ -5,6 +5,32 @@ import type { TeamRosterEntry } from "../types";
 
 const tableHeaders = ["Player", "Role", "Email", "Phone", "Birthday"];
 
+const ROLE_LABELS: Record<string, string> = {
+	captain: "Captain",
+	co_captain: "Co-captain",
+	"co-captain": "Co-captain",
+};
+
+const formatRoleLabel = (role?: string | null) => {
+	const normalized = role?.trim();
+	if (!normalized) {
+		return "-";
+	}
+
+	const match = ROLE_LABELS[normalized.toLowerCase()];
+	if (match) {
+		return match;
+	}
+
+	return normalized
+		.split(/[_\s-]+/)
+		.filter(Boolean)
+		.map(
+			(part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+		)
+		.join(" ");
+};
+
 const formatBirthday = (birthday?: string | null) => {
 	const trimmed = birthday?.trim();
 	if (!trimmed) {
@@ -60,7 +86,7 @@ function TeamRosterTable({ roster }: TeamRosterTableProps) {
 
 				return [
 					fullName,
-					entry.role ?? "-",
+					formatRoleLabel(entry.role),
 					entry.person.email ?? "-",
 					entry.person.phone_mobile ?? "-",
 					formatBirthday(entry.person.birthday),
