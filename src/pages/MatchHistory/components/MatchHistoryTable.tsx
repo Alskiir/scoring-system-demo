@@ -144,9 +144,6 @@ function MatchHistoryTable({ rows, teamName }: MatchHistoryTableProps) {
 					{safeTeamName} {row.isHomeMatch ? "(Home)" : "(Away)"} vs{" "}
 					{row.opponentName}
 				</Text>
-				<Text as="span" variant="subtle" size="xs">
-					Lines won / lost
-				</Text>
 			</div>
 		);
 
