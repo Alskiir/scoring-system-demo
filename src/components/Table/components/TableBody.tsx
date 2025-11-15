@@ -59,7 +59,7 @@ const TableBody = <T,>({
 								getRowId(row, rowIndex) ??
 								`table-row-${rowIndex}`
 							}
-							className="transition-colors duration-200 hover:bg-(--surface-hover)"
+							className="duration-200 transition-[background-color,color] hover:bg-(--surface-hover)"
 						>
 							{columns.map((column, columnIndex) => {
 								const alignment =
@@ -81,7 +81,7 @@ const TableBody = <T,>({
 				: simpleRows.map((row, rowIndex) => (
 						<tr
 							key={`table-row-${rowIndex}`}
-							className="transition-colors duration-200 hover:bg-(--surface-hover)"
+							className="duration-200 transition-[background-color,color] hover:bg-(--surface-hover)"
 						>
 							{(headers ?? []).map((_, colIndex) => (
 								<td
