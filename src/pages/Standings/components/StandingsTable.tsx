@@ -66,7 +66,7 @@ function StandingsTable({ standings }: StandingsTableProps) {
 		<Table
 			columns={columns}
 			data={standings}
-			initialSortColumnId="winPercentage"
+			initialSortColumnId="totalPoints"
 			initialSortDirection="desc"
 			getRowId={(row) => row.team_id ?? row.team_name}
 			emptyMessage="No standings available."
