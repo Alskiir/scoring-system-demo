@@ -5,19 +5,12 @@ import {
 	formatFullName,
 	takeFirstRelationValue,
 } from "../../utils/dataTransforms";
-import type { LineFormState, PlayerOption, TeamOption } from "./types";
+import type { LineFormState, PlayerOption } from "./types";
 
 type PlayerRecord = Pick<PersonRecord, "id" | "first_name" | "last_name">;
 
 type TeamMembershipRow = {
 	person: SupabaseRelation<PlayerRecord>;
-};
-
-export const fetchTeams = async (): Promise<TeamOption[]> => {
-	return resolveSupabase(
-		supabase.from("team").select("id, name, location").order("name"),
-		{ fallbackValue: [] }
-	);
 };
 
 export const fetchPlayersForTeam = async (

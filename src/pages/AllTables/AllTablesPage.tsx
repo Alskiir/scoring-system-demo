@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
 	BaseCard,
 	PageShell,
@@ -17,6 +17,7 @@ import {
 	type DatabaseTableName,
 	type TableDescriptor,
 } from "./api";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
 
 const descriptorMap = new Map<DatabaseTableName, TableDescriptor>(
 	databaseTables.map((descriptor) => [descriptor.name, descriptor])
@@ -138,20 +139,32 @@ function AllTablesPage() {
 		useState<DatabaseTableName | null>(() =>
 			hasTables ? availableTables[0]!.name : null
 		);
-	const [tableCache, setTableCache] = useState<
-		Partial<Record<DatabaseTableName, Record<string, unknown>[]>>
-	>({});
-	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [reloadVersion, setReloadVersion] = useState(0);
+	const resourceKey = selectedTable
+		? `allTables:${selectedTable}`
+		: "allTables:none";
+	const tableQuery = useAsyncResource<Record<string, unknown>[]>(
+		resourceKey,
+		async () => {
+			if (!selectedTable) {
+				return [];
+			}
+			const rows = await fetchTableRows(selectedTable);
+			return Array.isArray(rows) ? rows : [];
+		},
+		{
+			enabled: Boolean(selectedTable),
+			initialData: [],
+			staleTime: 2 * 60_000,
+		}
+	);
 
 	const activeDescriptor = selectedTable
 		? descriptorMap.get(selectedTable)
 		: undefined;
 	const visibleRows = useMemo(() => {
 		if (!selectedTable) return [];
-		return tableCache[selectedTable] ?? [];
-	}, [selectedTable, tableCache]);
+		return tableQuery.data ?? [];
+	}, [selectedTable, tableQuery.data]);
 	const hasCachedRows = visibleRows.length > 0;
 
 	const columnOrder = useMemo(
@@ -169,56 +182,20 @@ function AllTablesPage() {
 	}, [columnOrder]);
 	const defaultSortColumnId = columns.length > 0 ? columns[0]!.id : undefined;
 
-	useEffect(() => {
-		if (!selectedTable) return;
-
-		const tableName = selectedTable;
-
-		let isMounted = true;
-
-		async function loadTableData() {
-			setIsLoading(true);
-			setError(null);
-
-			try {
-				const data = await fetchTableRows(tableName);
-				if (!isMounted) return;
-				const normalized = Array.isArray(data) ? data : [];
-				setTableCache((previous) => ({
-					...previous,
-					[tableName]: normalized,
-				}));
-			} catch (err) {
-				console.error(err);
-				if (!isMounted) return;
-
-				const message =
-					err instanceof Error
-						? err.message
-						: "Unable to load table data.";
-				setError(message);
-			} finally {
-				if (isMounted) {
-					setIsLoading(false);
-				}
-			}
-		}
-
-		void loadTableData();
-
-		return () => {
-			isMounted = false;
-		};
-	}, [selectedTable, reloadVersion]);
-
 	const handleRefresh = () => {
-		setReloadVersion((prev) => prev + 1);
+		if (!selectedTable) {
+			return;
+		}
+		void tableQuery.refetch();
 	};
 
-	const isLoadingWithoutCache = isLoading && !hasCachedRows;
-	const showTableSkeleton = isLoading && hasCachedRows;
-	const showBlockingError = Boolean(error) && !hasCachedRows;
-	const showInlineError = Boolean(error) && hasCachedRows;
+	const isFetching = tableQuery.isLoading || tableQuery.isFetching;
+	const errorMessage = tableQuery.error?.message ?? null;
+
+	const isLoadingWithoutCache = tableQuery.isLoading && !hasCachedRows;
+	const showTableSkeleton = tableQuery.isFetching && hasCachedRows;
+	const showBlockingError = Boolean(errorMessage) && !hasCachedRows;
+	const showInlineError = Boolean(errorMessage) && hasCachedRows;
 	const tableEmptyMessage = (
 		<Text variant="caption" size="sm">
 			No rows returned for{" "}
@@ -257,10 +234,10 @@ function AllTablesPage() {
 				<button
 					type="button"
 					onClick={handleRefresh}
-					disabled={!selectedTable || isLoading}
+					disabled={!selectedTable || isFetching}
 					className="md-outlined-button"
 				>
-					{isLoading ? "Refreshing..." : "Refresh"}
+					{isFetching ? "Refreshing..." : "Refresh"}
 				</button>
 			</div>
 		</div>
@@ -280,7 +257,7 @@ function AllTablesPage() {
 		content = (
 			<BaseCard
 				title="Unable to load data"
-				description={error ?? undefined}
+				description={errorMessage ?? undefined}
 				footer="Confirm credentials are configured in the .env file."
 			/>
 		);
@@ -298,7 +275,7 @@ function AllTablesPage() {
 				{showInlineError ? (
 					<BaseCard
 						title="Unable to refresh data"
-						description={error ?? undefined}
+						description={errorMessage ?? undefined}
 						footer="Showing the most recently cached rows for this table."
 					/>
 				) : null}

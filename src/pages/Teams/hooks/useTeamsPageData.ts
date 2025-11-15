@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { getTeam, getTeamRoster, getTeams } from "../../../data";
+import { getTeam, getTeamRoster } from "../../../data";
+import { useAsyncResource } from "../../../hooks/useAsyncResource";
+import { useTeams } from "../../../hooks/useTeams";
 import { takeFirstRelationValue } from "../../../utils/dataTransforms";
 import type {
 	TeamMembership,
@@ -7,6 +9,27 @@ import type {
 	TeamRecord,
 	TeamRosterEntry,
 } from "../types";
+
+const sanitizeRoster = (rows: unknown): TeamRosterEntry[] => {
+	if (!Array.isArray(rows)) {
+		return [];
+	}
+
+	return (rows as TeamMembership[])
+		.map((entry) => {
+			const person = takeFirstRelationValue(entry.person);
+
+			if (!person) {
+				return null;
+			}
+
+			return {
+				role: entry.role ?? null,
+				person,
+			};
+		})
+		.filter((entry): entry is TeamRosterEntry => entry !== null);
+};
 
 type UseTeamsPageDataResult = {
 	teams: TeamRecord[];
@@ -25,126 +48,72 @@ type UseTeamsPageDataResult = {
 export function useTeamsPageData(
 	defaultTeamId?: string
 ): UseTeamsPageDataResult {
-	const [teams, setTeams] = useState<TeamRecord[]>([]);
+	const {
+		teams,
+		isLoading: teamsLoading,
+		isFetching: teamsFetching,
+		error: teamsError,
+	} = useTeams();
 	const [selectedTeamId, setSelectedTeamId] = useState<string | null>(
 		defaultTeamId ?? null
 	);
-	const [teamDetails, setTeamDetails] = useState<TeamRecord | null>(null);
-	const [roster, setRoster] = useState<TeamRosterEntry[]>([]);
-	const [error, setError] = useState<string | null>(null);
-	const [isLoadingTeams, setIsLoadingTeams] = useState(true);
-	const [isLoadingRoster, setIsLoadingRoster] = useState(false);
 
 	useEffect(() => {
-		let isMounted = true;
-
-		async function loadTeams() {
-			setIsLoadingTeams(true);
-			setError(null);
-
-			try {
-				const data = await getTeams();
-				if (!isMounted) return;
-
-				const sanitizedTeams = (data ?? []).filter((team) =>
-					Boolean(team?.id && team?.name)
-				);
-
-				setTeams(sanitizedTeams);
-
-				if (sanitizedTeams.length) {
-					const fallbackTeamId =
-						defaultTeamId ?? String(sanitizedTeams[0].id);
-
-					setSelectedTeamId((prev) => prev ?? fallbackTeamId);
-				}
-			} catch (err) {
-				console.error(err);
-				if (isMounted) {
-					setError("Unable to load teams. Please try again shortly.");
-				}
-			} finally {
-				if (isMounted) {
-					setIsLoadingTeams(false);
-				}
-			}
-		}
-
-		loadTeams();
-
-		return () => {
-			isMounted = false;
-		};
-	}, [defaultTeamId]);
-
-	useEffect(() => {
-		if (!selectedTeamId) {
-			setTeamDetails(null);
-			setRoster([]);
+		if (!teams.length) {
 			return;
 		}
 
-		let isMounted = true;
+		setSelectedTeamId((prev) => {
+			if (prev) {
+				return prev;
+			}
 
-		async function loadTeamData(teamId: string) {
-			setIsLoadingRoster(true);
-			setError(null);
+			if (defaultTeamId) {
+				const hasDefault = teams.some(
+					(team) => String(team.id) === defaultTeamId
+				);
 
-			try {
-				const [team, rosterData] = await Promise.all([
-					getTeam(teamId),
-					getTeamRoster(teamId),
-				]);
-
-				if (!isMounted) return;
-
-				setTeamDetails(team ?? null);
-
-				const sanitizedRoster = Array.isArray(rosterData)
-					? (rosterData as TeamMembership[])
-							.map((entry) => {
-								const person = takeFirstRelationValue(
-									entry.person
-								);
-
-								if (!person) {
-									return null;
-								}
-
-								return {
-									role: entry.role ?? null,
-									person,
-								};
-							})
-							.filter(
-								(entry): entry is TeamRosterEntry =>
-									entry !== null
-							)
-					: [];
-
-				setRoster(sanitizedRoster);
-			} catch (err) {
-				console.error(err);
-				if (isMounted) {
-					setError(
-						"Unable to load the selected team's roster. Please try again."
-					);
-					setRoster([]);
-					setTeamDetails(null);
-				}
-			} finally {
-				if (isMounted) {
-					setIsLoadingRoster(false);
+				if (hasDefault) {
+					return defaultTeamId;
 				}
 			}
+
+			return String(teams[0].id);
+		});
+	}, [defaultTeamId, teams]);
+
+	const teamDetailsQuery = useAsyncResource<TeamRecord | null>(
+		selectedTeamId ? `team:${selectedTeamId}:details` : "team:none:details",
+		async () => {
+			if (!selectedTeamId) {
+				return null;
+			}
+			const record = await getTeam(selectedTeamId);
+			return record ?? null;
+		},
+		{
+			initialData: null,
+			enabled: Boolean(selectedTeamId),
+			staleTime: 2 * 60_000,
 		}
+	);
 
-		loadTeamData(selectedTeamId);
+	const rosterQuery = useAsyncResource<TeamRosterEntry[]>(
+		selectedTeamId ? `team:${selectedTeamId}:roster` : "team:none:roster",
+		async () => {
+			if (!selectedTeamId) {
+				return [];
+			}
 
-		return () => {
-			isMounted = false;
-		};
-	}, [selectedTeamId]);
+			const rosterData = await getTeamRoster(selectedTeamId);
+			return sanitizeRoster(rosterData);
+		},
+		{
+			initialData: [],
+			enabled: Boolean(selectedTeamId),
+			staleTime: 2 * 60_000,
+		}
+	);
 
 	const teamOptions = useMemo<TeamOption[]>(
 		() =>
@@ -154,6 +123,21 @@ export function useTeamsPageData(
 			})),
 		[teams]
 	);
+
+	const teamDetails = teamDetailsQuery.data ?? null;
+	const roster = rosterQuery.data ?? [];
+	const isLoadingTeams = teamsLoading || teamsFetching;
+	const isLoadingRoster =
+		teamDetailsQuery.isLoading ||
+		teamDetailsQuery.isFetching ||
+		rosterQuery.isLoading ||
+		rosterQuery.isFetching;
+
+	const error =
+		teamsError?.message ??
+		teamDetailsQuery.error?.message ??
+		rosterQuery.error?.message ??
+		null;
 
 	return {
 		teams,

@@ -1,7 +1,5 @@
 import { useCallback, useState } from "react";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
-
-import { fetchTeams } from "../api";
 import { MIN_GAMES_PER_LINE } from "../constants";
 import { determineWinner, renumberLines, todayIso } from "../lineUtils";
 import type {
@@ -15,8 +13,7 @@ type UseAutofillMatchOptions = {
 	lines: LineFormState[];
 	setLines: Dispatch<SetStateAction<LineFormState[]>>;
 	teams: TeamOption[];
-	setTeams: Dispatch<SetStateAction<TeamOption[]>>;
-	setTeamsLoading: Dispatch<SetStateAction<boolean>>;
+	ensureTeams: () => Promise<TeamOption[]>;
 	setHomeTeamId: (value: string) => void;
 	setAwayTeamId: (value: string) => void;
 	setHomePlayers: Dispatch<SetStateAction<PlayerOption[]>>;
@@ -74,8 +71,7 @@ export const useAutofillMatch = ({
 	lines,
 	setLines,
 	teams,
-	setTeams,
-	setTeamsLoading,
+	ensureTeams,
 	setHomeTeamId,
 	setAwayTeamId,
 	setHomePlayers,
@@ -98,13 +94,7 @@ export const useAutofillMatch = ({
 		try {
 			let availableTeams = teams;
 			if (!availableTeams.length) {
-				try {
-					setTeamsLoading(true);
-					availableTeams = await fetchTeams();
-					setTeams(availableTeams);
-				} finally {
-					setTeamsLoading(false);
-				}
+				availableTeams = await ensureTeams();
 			}
 
 			if (!availableTeams.length) {
@@ -214,6 +204,7 @@ export const useAutofillMatch = ({
 			setIsAutofilling(false);
 		}
 	}, [
+		ensureTeams,
 		getRosterForTeam,
 		lines,
 		rosterCacheRef,
@@ -225,8 +216,6 @@ export const useAutofillMatch = ({
 		setLocation,
 		setMatchDate,
 		setMatchTime,
-		setTeams,
-		setTeamsLoading,
 		setToast,
 		setValidationErrors,
 		teams,

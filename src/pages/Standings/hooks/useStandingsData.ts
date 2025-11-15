@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { getStandings } from "../../../data";
+import { useAsyncResource } from "../../../hooks/useAsyncResource";
 import {
 	coerceIdentifierFromRecord,
 	coerceNumber,
@@ -23,68 +23,47 @@ type UseStandingsDataResult = {
 	error: string | null;
 };
 
+const STANDINGS_RESOURCE_KEY = "standings";
+
+const sanitizeStandings = (rows: unknown): StandingRecord[] => {
+	if (!Array.isArray(rows)) {
+		return [];
+	}
+
+	const normalized = (rows as RawStandingRecord[]).map((row) => ({
+		team_id: coerceIdentifierFromRecord(row, "team_id", "id"),
+		team_name:
+			coerceString(row["team_name"]) ??
+			coerceString(row["name"]) ??
+			"Unknown Team",
+		matches_won: coerceNumber(row["matches_won"]),
+		matches_lost: coerceNumber(row["matches_lost"]),
+		win_percentage: coerceNumber(row["win_percentage"]),
+		total_points: coerceNumber(row["total_points"]),
+	}));
+
+	return normalized.sort(
+		(a, b) =>
+			(b.total_points ?? Number.NEGATIVE_INFINITY) -
+			(a.total_points ?? Number.NEGATIVE_INFINITY)
+	);
+};
+
 export function useStandingsData(): UseStandingsDataResult {
-	const [standings, setStandings] = useState<StandingRecord[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
-
-	useEffect(() => {
-		let isMounted = true;
-
-		async function loadStandings() {
-			setIsLoading(true);
-			setError(null);
-
-			try {
-				const data = await getStandings();
-				if (!isMounted) return;
-
-				const sanitizedStandings: StandingRecord[] = Array.isArray(data)
-					? (data as RawStandingRecord[]).map((row) => ({
-							team_id: coerceIdentifierFromRecord(
-								row,
-								"team_id",
-								"id"
-							),
-							team_name:
-								coerceString(row["team_name"]) ??
-								coerceString(row["name"]) ??
-								"Unknown Team",
-							matches_won: coerceNumber(row["matches_won"]),
-							matches_lost: coerceNumber(row["matches_lost"]),
-							win_percentage: coerceNumber(row["win_percentage"]),
-							total_points: coerceNumber(row["total_points"]),
-					  }))
-					: [];
-
-				const sortedStandings = sanitizedStandings.sort(
-					(a, b) =>
-						(b.total_points ?? Number.NEGATIVE_INFINITY) -
-						(a.total_points ?? Number.NEGATIVE_INFINITY)
-				);
-
-				setStandings(sortedStandings);
-			} catch (err) {
-				console.error(err);
-				if (isMounted) {
-					setError(
-						"Unable to load standings. Please confirm credentials and try again."
-					);
-					setStandings([]);
-				}
-			} finally {
-				if (isMounted) {
-					setIsLoading(false);
-				}
-			}
+	const standingsQuery = useAsyncResource<StandingRecord[]>(
+		STANDINGS_RESOURCE_KEY,
+		async () => {
+			const data = await getStandings();
+			return sanitizeStandings(data);
+		},
+		{
+			initialData: [],
 		}
+	);
 
-		loadStandings();
-
-		return () => {
-			isMounted = false;
-		};
-	}, []);
-
-	return { standings, isLoading, error };
+	return {
+		standings: standingsQuery.data ?? [],
+		isLoading: standingsQuery.isLoading || standingsQuery.isFetching,
+		error: standingsQuery.error?.message ?? null,
+	};
 }

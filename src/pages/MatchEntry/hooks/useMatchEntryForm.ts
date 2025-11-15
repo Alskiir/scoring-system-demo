@@ -1,17 +1,27 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
-import { fetchPlayersForTeam, fetchTeams, saveMatch } from "../api";
+import { fetchPlayersForTeam, saveMatch } from "../api";
 import { determineWinner, deriveMatchWinner, todayIso } from "../lineUtils";
-import type { PlayerOption, ToastState, TeamOption } from "../types";
+import type { PlayerOption, ToastState } from "../types";
+import { useTeams } from "../../../hooks/useTeams";
 import { useAutofillMatch } from "./useAutofillMatch";
 import { useLinesState } from "./useLinesState";
 import { validateMatchEntryForm } from "./validateMatchEntryForm";
 
 export const useMatchEntryForm = () => {
 	const rosterCacheRef = useRef<Map<string, PlayerOption[]>>(new Map());
-	const [teams, setTeams] = useState<TeamOption[]>([]);
-	const [teamsLoading, setTeamsLoading] = useState(false);
+	const {
+		teams,
+		isLoading: teamsInitialLoading,
+		isFetching: teamsFetching,
+		error: teamsError,
+		refetch: refetchTeams,
+	} = useTeams({
+		staleTime: 10 * 60_000,
+	});
+	const teamsLoading =
+		teamsInitialLoading || (!teams.length && teamsFetching);
 	const [homeTeamId, setHomeTeamId] = useState("");
 	const [awayTeamId, setAwayTeamId] = useState("");
 	const [homePlayers, setHomePlayers] = useState<PlayerOption[]>([]);
@@ -36,6 +46,17 @@ export const useMatchEntryForm = () => {
 	const [validationErrors, setValidationErrors] = useState<string[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
+	useEffect(() => {
+		if (!teamsError) {
+			return;
+		}
+
+		setToast({
+			type: "error",
+			message: teamsError.message ?? "Unable to load teams.",
+		});
+	}, [teamsError]);
+
 	const getRosterForTeam = async (teamId: string) => {
 		const cached = rosterCacheRef.current.get(teamId);
 		if (cached) {
@@ -46,12 +67,19 @@ export const useMatchEntryForm = () => {
 		return roster;
 	};
 
+	const ensureTeamsAvailable = useCallback(async () => {
+		if (teams.length) {
+			return teams;
+		}
+
+		return refetchTeams();
+	}, [refetchTeams, teams]);
+
 	const { autofillMatch, isAutofilling } = useAutofillMatch({
 		lines,
 		setLines,
 		teams,
-		setTeams,
-		setTeamsLoading,
+		ensureTeams: ensureTeamsAvailable,
 		setHomeTeamId,
 		setAwayTeamId,
 		setHomePlayers,
@@ -82,35 +110,6 @@ export const useMatchEntryForm = () => {
 		if (awayTeam) return `${awayTeam.name} (A)`;
 		return "Match Entry";
 	}, [awayTeam, homeTeam]);
-
-	useEffect(() => {
-		let isMounted = true;
-		const loadTeams = async () => {
-			try {
-				setTeamsLoading(true);
-				const data = await fetchTeams();
-				if (!isMounted) return;
-				setTeams(data);
-			} catch (error) {
-				if (!isMounted) return;
-				console.error(error);
-				setToast({
-					type: "error",
-					message: "Unable to load teams.",
-				});
-			} finally {
-				if (isMounted) {
-					setTeamsLoading(false);
-				}
-			}
-		};
-
-		loadTeams();
-
-		return () => {
-			isMounted = false;
-		};
-	}, []);
 
 	useEffect(() => {
 		let isActive = true;
