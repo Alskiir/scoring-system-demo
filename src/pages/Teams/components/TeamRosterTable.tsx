@@ -154,6 +154,11 @@ const ContactCell = ({
 				<a
 					href={href}
 					className="md-outlined-button md-button--compact inline-flex items-center gap-2 text-xs"
+					style={{
+						padding: "0.35rem 0.9rem",
+						minHeight: "unset",
+						fontSize: "0.75rem",
+					}}
 				>
 					<Icon className={iconClass} aria-hidden="true" />
 					<span>{actionLabel}</span>
