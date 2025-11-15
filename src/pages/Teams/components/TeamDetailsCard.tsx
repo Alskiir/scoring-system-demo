@@ -1,4 +1,4 @@
-import { GlassCard } from "../../../components";
+import { BaseCard } from "../../../components";
 import type { TeamRecord } from "../types";
 
 type TeamDetailsCardProps = {
@@ -10,7 +10,7 @@ function TeamDetailsCard({ team, rosterCount }: TeamDetailsCardProps) {
 	const description = team.location ?? "Team roster powered by PostgreSQL.";
 
 	return (
-		<GlassCard
+		<BaseCard
 			title={team.name}
 			description={description}
 			details={[

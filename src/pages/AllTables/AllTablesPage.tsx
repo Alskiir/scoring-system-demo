@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-	GlassCard,
+	BaseCard,
 	PageShell,
 	Table,
 	Text,
@@ -22,7 +22,10 @@ const descriptorMap = new Map<DatabaseTableName, TableDescriptor>(
 	databaseTables.map((descriptor) => [descriptor.name, descriptor])
 );
 type GenericRow = Record<string, unknown>;
-const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+const collator = new Intl.Collator(undefined, {
+	numeric: true,
+	sensitivity: "base",
+});
 const ROW_ID_CANDIDATES = [
 	"id",
 	"ID",
@@ -267,15 +270,15 @@ function AllTablesPage() {
 
 	if (!hasTables) {
 		content = (
-			<GlassCard description="No tables are configured for display. Add descriptors in src/pages/AllTables/api.ts." />
+			<BaseCard description="No tables are configured for display. Add descriptors in src/pages/AllTables/api.ts." />
 		);
 	} else if (!selectedTable) {
 		content = (
-			<GlassCard description="Choose a table from the dropdown to inspect its rows." />
+			<BaseCard description="Choose a table from the dropdown to inspect its rows." />
 		);
 	} else if (showBlockingError) {
 		content = (
-			<GlassCard
+			<BaseCard
 				title="Unable to load data"
 				description={error ?? undefined}
 				footer="Confirm credentials are configured in the .env file."
@@ -283,7 +286,7 @@ function AllTablesPage() {
 		);
 	} else if (isLoadingWithoutCache) {
 		content = (
-			<GlassCard
+			<BaseCard
 				description={`Loading ${
 					activeDescriptor?.label ?? "table"
 				} data...`}
@@ -293,13 +296,13 @@ function AllTablesPage() {
 		content = (
 			<div className="flex flex-col gap-6">
 				{showInlineError ? (
-					<GlassCard
+					<BaseCard
 						title="Unable to refresh data"
 						description={error ?? undefined}
 						footer="Showing the most recently cached rows for this table."
 					/>
 				) : null}
-				<GlassCard
+				<BaseCard
 					title={activeDescriptor?.label ?? "Table details"}
 					description={
 						activeDescriptor?.description ??

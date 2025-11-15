@@ -1,4 +1,4 @@
-import { GlassCard, PageShell } from "../../components";
+import { BaseCard, PageShell } from "../../components";
 
 const siteSections = [
 	{
@@ -46,12 +46,12 @@ const dataPractices = [
 	{
 		name: "Supabase-backed data",
 		description:
-			"The shared client in lib/supabaseClient pipes every request through resolveSupabase, so GlassCard banners can raise helpful errors and tables always get safe fallback data.",
+			"The shared client in lib/supabaseClient pipes every request through resolveSupabase, so BaseCard banners can raise helpful errors and tables always get safe fallback data.",
 	},
 	{
 		name: "Reusable layout system",
 		description:
-			"Navbar, PageShell, GlassCard, and the shared Table component keep spacing, tone, and interactions consistent across phones, tablets, and laptops.",
+			"Navbar, PageShell, BaseCard, and the shared Table component keep spacing, tone, and interactions consistent across phones, tablets, and laptops.",
 	},
 	{
 		name: "Utility helpers",
@@ -72,7 +72,7 @@ const roadmap = [
 	"Push every verified roster into a MailChimp audience so directors can fire off division-wide updates without exporting CSVs.",
 	"Trigger MailChimp automations whenever a match submission lands, sending recaps and reminders that reuse the Match Entry data.",
 	"Use the RegistrationWorks API to import registrations directly into PostgreSQL tables, guaranteeing that players, captains, and teams stay synchronized.",
-	"Run RegistrationWorks checks when captains pick players, blocking ineligible athletes and showing a friendly GlassCard prompt inside the form.",
+	"Run RegistrationWorks checks when captains pick players, blocking ineligible athletes and showing a friendly BaseCard prompt inside the form.",
 ];
 
 function AboutPage() {
@@ -95,20 +95,20 @@ function AboutPage() {
 			maxWidthClass="max-w-5xl"
 			paddingClass="px-6 md:px-10"
 		>
-			<GlassCard
+			<BaseCard
 				title="What this solves"
 				description="League directors can review the latest results before planning broadcasts, captains can lock in lineups the moment play wraps, and volunteers can audit data without leaving the browser."
 			/>
 
 			<div className="grid gap-6 md:grid-cols-2">
-				<GlassCard
+				<BaseCard
 					title="Page-by-page tour"
 					listItems={siteSections.map((section) => ({
 						title: section.title,
 						description: section.description,
 					}))}
 				/>
-				<GlassCard
+				<BaseCard
 					title="Match Entry workflow"
 					description="The heaviest workflow lives on the Match Entry page, where captains record every detail from venue to game scores."
 					listItems={matchEntryHighlights.map((item) => ({
@@ -118,7 +118,7 @@ function AboutPage() {
 				/>
 			</div>
 
-			<GlassCard
+			<BaseCard
 				title="Data + tooling"
 				description="Each feature leans on a compact but production-minded toolkit:"
 				listItems={dataPractices.map((tech) => ({
@@ -129,7 +129,7 @@ function AboutPage() {
 			/>
 
 			<div className="grid gap-6 md:grid-cols-2">
-				<GlassCard
+				<BaseCard
 					title="Capabilities on display"
 					listItems={capabilityHighlights.map((item) => ({
 						description: item,
@@ -137,7 +137,7 @@ function AboutPage() {
 					listVariant="bullet"
 				/>
 
-				<GlassCard
+				<BaseCard
 					title="MailChimp + RegistrationWorks integrations"
 					description="These integrations plug communication and registration tools straight into the existing PostgreSQL workflow:"
 					listItems={roadmap.map((item) => ({

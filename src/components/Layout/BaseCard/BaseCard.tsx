@@ -1,21 +1,21 @@
 import React from "react";
 import { Header, Text } from "../../Typography";
 
-type GlassCardDetail = {
+type BaseCardDetail = {
 	label: string;
 	value: string;
 };
 
-type GlassCardListItem = {
+type BaseCardListItem = {
 	title?: string;
 	description: string;
 };
 
-interface GlassCardProps {
+interface BaseCardProps {
 	title?: string;
 	description?: string;
-	details?: GlassCardDetail[];
-	listItems?: GlassCardListItem[];
+	details?: BaseCardDetail[];
+	listItems?: BaseCardListItem[];
 	listVariant?: "definition" | "bullet";
 	listColumns?: 1 | 2;
 	footer?: string;
@@ -23,7 +23,7 @@ interface GlassCardProps {
 	children?: React.ReactNode;
 }
 
-const GlassCard: React.FC<GlassCardProps> = ({
+const BaseCard: React.FC<BaseCardProps> = ({
 	title,
 	description,
 	details,
@@ -125,4 +125,4 @@ const GlassCard: React.FC<GlassCardProps> = ({
 	);
 };
 
-export default GlassCard;
+export default BaseCard;

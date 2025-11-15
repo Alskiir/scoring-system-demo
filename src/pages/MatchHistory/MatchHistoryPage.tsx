@@ -1,4 +1,4 @@
-import { FilterDropdown, GlassCard, PageShell } from "../../components";
+import { FilterDropdown, BaseCard, PageShell } from "../../components";
 import MatchHistoryTable from "./components/MatchHistoryTable";
 import { useMatchHistoryData } from "./hooks/useMatchHistoryData";
 
@@ -21,7 +21,7 @@ function MatchHistoryPage() {
 
 	if (error) {
 		content = (
-			<GlassCard
+			<BaseCard
 				title="Unable to load match history"
 				description={error}
 				footer="Check credentials and confirm that the match, match_line, and team tables are accessible."
@@ -29,13 +29,13 @@ function MatchHistoryPage() {
 		);
 	} else if (!hasTeams && !isLoadingTeams) {
 		content = (
-			<GlassCard description="No teams are available yet. Add teams to the database to review their match history." />
+			<BaseCard description="No teams are available yet. Add teams to the database to review their match history." />
 		);
 	} else if (isLoading) {
-		content = <GlassCard description="Loading match history..." />;
+		content = <BaseCard description="Loading match history..." />;
 	} else if (!matches.length) {
 		content = (
-			<GlassCard
+			<BaseCard
 				description={`No matches have been recorded for ${selectedTeamName} yet.`}
 			/>
 		);

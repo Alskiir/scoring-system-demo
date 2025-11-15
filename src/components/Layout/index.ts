@@ -1,2 +1,2 @@
-export * from "./GlassCard";
+export * from "./BaseCard";
 export * from "./PageShell";

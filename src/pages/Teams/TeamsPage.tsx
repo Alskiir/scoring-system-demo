@@ -1,4 +1,4 @@
-import { GlassCard, PageShell } from "../../components";
+import { BaseCard, PageShell } from "../../components";
 import { TeamDetailsCard, TeamFilter, TeamRosterTable } from "./components";
 import { useTeamsPageData } from "./hooks/useTeamsPageData";
 
@@ -35,13 +35,13 @@ function TeamsPage() {
 			}
 		>
 			{error ? (
-				<GlassCard
+				<BaseCard
 					title="Something went wrong"
 					description={error}
 					footer="Confirm credentials are configured in the .env file."
 				/>
 			) : isLoading ? (
-				<GlassCard description="Loading team information..." />
+				<BaseCard description="Loading team information..." />
 			) : showRoster && teamDetails ? (
 				<div className="flex flex-col gap-6">
 					<TeamDetailsCard
@@ -54,7 +54,7 @@ function TeamsPage() {
 					/>
 				</div>
 			) : (
-				<GlassCard description="Choose a team to view roster details." />
+				<BaseCard description="Choose a team to view roster details." />
 			)}
 		</PageShell>
 	);
