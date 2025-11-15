@@ -22,7 +22,7 @@ function TeamFilter({
 			onChange={onChange}
 			options={options}
 			disabled={disabled}
-			className="md:w-56 md:max-w-none!"
+			className="md:w-56 md:max-w-none"
 		/>
 	);
 }

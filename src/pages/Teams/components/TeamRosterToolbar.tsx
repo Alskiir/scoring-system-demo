@@ -63,7 +63,7 @@ const TeamRosterToolbar = ({
 				</label>
 			</div>
 			<div className="flex flex-col gap-6 md:items-end">
-				<div className="flex not-md:flex-wrap gap-2">
+				<div className="flex flex-wrap gap-2 md:flex-nowrap">
 					<button
 						type="button"
 						className="md-outlined-button md-button--compact text-xs disabled:opacity-50"
