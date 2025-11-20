@@ -41,7 +41,10 @@ const Navbar: React.FC = () => {
 			<div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 md:px-8">
 				<div className="flex items-center">
 					{/* Left: Logo and/or Title */}
-					<Link to="/" className="group inline-flex items-center">
+					<Link
+						to="/"
+						className="group inline-flex items-center shrink-0 whitespace-nowrap"
+					>
 						<Text
 							as="span"
 							variant="brand"
@@ -53,7 +56,7 @@ const Navbar: React.FC = () => {
 					</Link>
 				</div>
 
-				<div className="hidden items-center gap-2 md:flex">
+				<div className="hidden items-center gap-1.5 whitespace-nowrap md:flex md:overflow-x-auto">
 					{navRoutes.map((link) => {
 						const active = isRouteActive(
 							link.activePaths,
@@ -66,7 +69,7 @@ const Navbar: React.FC = () => {
 								onClick={handleLinkClick}
 								aria-current={active ? "page" : undefined}
 								end={link.path === "/"}
-								className={`group rounded-full px-4 py-2 text-sm font-semibold tracking-wide transition-colors duration-200 ${
+								className={`group whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition-colors duration-200 ${
 									active
 										? "bg-(--accent-muted) text-(--md-sys-color-on-primary-container) shadow-(--md-sys-elevation-1)"
 										: "text-(--text-muted) hover:bg-(--surface-hover)"

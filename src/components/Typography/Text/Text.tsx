@@ -37,7 +37,7 @@ const variantClasses: Record<TextVariant, string> = {
 		"text-[var(--text-muted)] uppercase tracking-[0.28em] font-semibold leading-tight",
 	eyebrowMuted:
 		"text-[var(--text-subtle)] uppercase tracking-[0.28em] font-semibold leading-tight",
-	nav: "text-[var(--text-secondary)] font-semibold tracking-[0.12em] uppercase",
+	nav: "text-[var(--text-secondary)] font-semibold tracking-[0.08em] uppercase whitespace-nowrap",
 	brand: "text-[var(--accent)] font-semibold tracking-[0.18em] uppercase",
 	tableHeader:
 		"text-[var(--text-muted)] uppercase tracking-[0.2em] font-semibold leading-tight",
