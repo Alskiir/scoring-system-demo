@@ -27,43 +27,112 @@ type UseAutofillMatchOptions = {
 	rosterCacheRef: RefObject<Map<string, PlayerOption[]>>;
 };
 
+const shuffleArray = <T>(items: T[]) => {
+	const copy = [...items];
+	for (let i = copy.length - 1; i > 0; i -= 1) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[copy[i], copy[j]] = [copy[j], copy[i]];
+	}
+	return copy;
+};
+
 const pickPlayersForLine = (
 	roster: PlayerOption[],
-	offset: number
+	usage: Map<string, number>
 ): [string, string] => {
 	if (!roster.length) {
 		return ["", ""];
 	}
 	if (roster.length === 1) {
+		usage.set(roster[0].id, (usage.get(roster[0].id) ?? 0) + 1);
 		return [roster[0].id, roster[0].id];
 	}
-	const first = roster[offset % roster.length];
-	const second = roster[(offset + 1) % roster.length];
+
+	const prioritized = [...roster].sort((a, b) => {
+		const useA = usage.get(a.id) ?? 0;
+		const useB = usage.get(b.id) ?? 0;
+		if (useA !== useB) return useA - useB;
+		return Math.random() - 0.5;
+	});
+
+	const first = prioritized[0];
+	const secondPool =
+		prioritized.length > 2
+			? shuffleArray(prioritized.slice(1, 3))
+			: prioritized.slice(1);
+	const second =
+		secondPool.find((player) => player.id !== first.id) ?? prioritized[1];
+
+	usage.set(first.id, (usage.get(first.id) ?? 0) + 1);
+	usage.set(second.id, (usage.get(second.id) ?? 0) + 1);
+
 	return [first.id, second.id];
 };
 
-const generateGameScores = (gamesCount: number, winner: "home" | "away") => {
+const pickSetScore = (competitiveness: number): [number, number] => {
+	const clamped = Math.min(Math.max(competitiveness, 0), 1);
+	const closeChance = 0.35 + clamped * 0.4;
+	const steadyChance = 0.45 - clamped * 0.25;
+	const roll = Math.random();
+
+	if (roll < closeChance) {
+		const closeOptions: Array<[number, number]> = [
+			[6, 4],
+			[7, 5],
+			[7, 6],
+			[6, 3],
+		];
+		return closeOptions[Math.floor(Math.random() * closeOptions.length)];
+	}
+
+	if (roll < closeChance + steadyChance) {
+		const routineOptions: Array<[number, number]> = [
+			[6, 3],
+			[6, 2],
+			[6, 1],
+		];
+		return routineOptions[
+			Math.floor(Math.random() * routineOptions.length)
+		];
+	}
+
+	const blowouts: Array<[number, number]> = [
+		[6, 0],
+		[6, 1],
+		[6, 2],
+	];
+	return blowouts[Math.floor(Math.random() * blowouts.length)];
+};
+
+const generateGameScores = (
+	gamesCount: number,
+	winner: "home" | "away",
+	competitiveness: number
+) => {
 	const count = Math.max(gamesCount, MIN_GAMES_PER_LINE);
 	const winsNeeded = Math.floor(count / 2) + 1;
-	let winnerWins = 0;
+	const losingSide = winner === "home" ? "away" : "home";
+	const maxLosingSets = Math.max(0, count - winsNeeded);
+	const losingSetsTarget = Math.min(
+		maxLosingSets,
+		Math.round(competitiveness * maxLosingSets + Math.random() * 0.6)
+	);
 
-	return Array.from({ length: count }, (_, idx) => {
-		const winnerTakesGame = winnerWins < winsNeeded;
-		if (winnerTakesGame) {
-			winnerWins += 1;
+	const setWinners: Array<"home" | "away"> = [
+		...Array(winsNeeded).fill(winner),
+		...Array(losingSetsTarget).fill(losingSide),
+	];
+
+	while (setWinners.length < count) {
+		setWinners.push(winner);
+	}
+
+	return shuffleArray(setWinners).map((setWinner) => {
+		const [winScore, loseScore] = pickSetScore(competitiveness);
+		if (setWinner === "home") {
+			return { home: String(winScore), away: String(loseScore) };
 		}
-		const winningScore = 6;
-		const losingScore = Math.max(0, winningScore - (2 + ((idx + 1) % 3)));
-
-		if (winner === "home") {
-			return winnerTakesGame
-				? { home: String(winningScore), away: String(losingScore) }
-				: { home: String(losingScore), away: String(winningScore) };
-		}
-
-		return winnerTakesGame
-			? { home: String(losingScore), away: String(winningScore) }
-			: { home: String(winningScore), away: String(losingScore) };
+		return { home: String(loseScore), away: String(winScore) };
 	});
 };
 
@@ -131,20 +200,48 @@ export const useAutofillMatch = ({
 				);
 			}
 
-			const [awayEntry, homeEntry] = eligible;
+			const [teamOne, teamTwo] = eligible;
+			const coinFlip = Math.random() < 0.5;
+			const homeEntry = coinFlip ? teamOne : teamTwo;
+			const awayEntry = coinFlip ? teamTwo : teamOne;
+			const homeUsage = new Map<string, number>();
+			const awayUsage = new Map<string, number>();
+			const baseHomeEdge = Math.min(
+				0.75,
+				Math.max(0.35, 0.55 + (Math.random() - 0.5) * 0.15)
+			);
 
 			const nextLines = lines.map((line, idx) => {
 				const [awayPlayer1Id, awayPlayer2Id] = pickPlayersForLine(
 					awayEntry.roster,
-					idx * 2
+					awayUsage
 				);
 				const [homePlayer1Id, homePlayer2Id] = pickPlayersForLine(
 					homeEntry.roster,
-					idx * 2
+					homeUsage
+				);
+				const lineNoise = (Math.random() - 0.5) * 0.12 - idx * 0.015;
+				const homeWinChance = Math.min(
+					0.8,
+					Math.max(0.3, baseHomeEdge + lineNoise)
 				);
 				const winnerSide: "home" | "away" =
-					idx % 2 === 0 ? "home" : "away";
-				const games = generateGameScores(line.games.length, winnerSide);
+					Math.random() < homeWinChance ? "home" : "away";
+				const competitiveness = Math.min(
+					0.95,
+					Math.max(
+						0.25,
+						0.45 +
+							Math.random() * 0.35 -
+							idx * 0.02 +
+							Math.random() * 0.05
+					)
+				);
+				const games = generateGameScores(
+					line.games.length,
+					winnerSide,
+					competitiveness
+				);
 				const nextLine = {
 					...line,
 					teamA: {
