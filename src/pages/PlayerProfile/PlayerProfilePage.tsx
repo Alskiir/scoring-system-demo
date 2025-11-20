@@ -44,46 +44,46 @@ const playerProfile: PlayerProfile = {
 };
 
 const socialStats: Stat[] = [
-	{ label: "Followers", value: "12.4K" },
-	{ label: "Following", value: "312" },
-	{ label: "Highlights", value: "48" },
+	{ label: "Games won", value: "18" },
+	{ label: "Games lost", value: "5" },
+	{ label: "Lines won / match", value: "2.3 avg" },
 ];
 
 const quickStats: Stat[] = [
-	{ label: "Ranking", value: "#2 overall" },
-	{ label: "Record", value: "18-3" },
-	{ label: "Streak", value: "7 wins" },
+	{ label: "Win percentage", value: "78%" },
+	{ label: "Win streak", value: "5 matches" },
+	{ label: "Total matches", value: "23 played" },
 ];
 
 const performanceTrend: TrendPoint[] = [
-	{ label: "Mar", value: 62 },
-	{ label: "Apr", value: 68 },
-	{ label: "May", value: 72 },
-	{ label: "Jun", value: 75 },
-	{ label: "Jul", value: 79 },
-	{ label: "Aug", value: 81 },
-	{ label: "Sep", value: 84 },
-	{ label: "Oct", value: 94 },
+	{ label: "M-8", value: 4 },
+	{ label: "M-7", value: 6 },
+	{ label: "M-6", value: 3 },
+	{ label: "M-5", value: 8 },
+	{ label: "M-4", value: -1 },
+	{ label: "M-3", value: 5 },
+	{ label: "M-2", value: 2 },
+	{ label: "M-1", value: 7 },
 ];
 
 const statHighlights: StatHighlight[] = [
 	{
-		label: "Serve hold rate",
-		value: "82%",
-		change: "+3.4 pts vs last 8",
+		label: "Average point differential",
+		value: "+4.3 pts",
+		change: "+1.1 vs last 8",
 		trend: "up",
 	},
 	{
-		label: "Net conversion",
-		value: "71%",
-		change: "+6.1 pts vs last 8",
+		label: "Games won vs lost",
+		value: "18 / 5",
+		change: "5 on current streak",
 		trend: "up",
 	},
 	{
-		label: "Unforced errors",
-		value: "6.4 / match",
-		change: "-14% drop vs avg",
-		trend: "down",
+		label: "Lines won per match",
+		value: "2.3 avg",
+		change: "+0.2 vs season avg",
+		trend: "up",
 	},
 ];
 
@@ -273,7 +273,7 @@ const StatTrendChart = ({ data }: StatTrendChartProps) => {
 		<svg
 			viewBox={`0 0 ${width} ${height}`}
 			role="img"
-			aria-label="Player performance trend"
+			aria-label="Point differential trend"
 			className="h-full w-full"
 		>
 			<defs>
@@ -368,28 +368,30 @@ const PlayerStatsGraph = () => {
 			<div className="flex flex-wrap items-start justify-between gap-4">
 				<div className="space-y-2">
 					<Text variant="eyebrowMuted" size="xs">
-						Player performance
+						Player pulse
 					</Text>
 					<Header level={3} size="xl">
-						Shot quality & rally control
+						Point differential per match
 					</Header>
 					<Text variant="muted" size="sm">
-						Weighted index blending serve holds, transition wins,
-						and attacking points across her last eight scored
-						matches.
+						Points for minus points against, across her eight most
+						recent recorded matches.
 					</Text>
 				</div>
 				<div className="rounded-[18px] border border-(--border-highlight) bg-(--surface-raised) px-4 py-3 text-right shadow-(--md-sys-elevation-1)">
 					<Text variant="subtle" size="xs">
-						Latest peak
+						Last result differential
 					</Text>
 					<Header level={4} size="lg" className="text-(--accent)">
-						{latestPoint.value} index
+						{latestPoint.value > 0 ? "+" : ""}
+						{latestPoint.value} pts
 					</Header>
 					<Text
 						variant="muted"
 						size="sm"
-						className="font-semibold text-(--success)"
+						className={`font-semibold ${
+							delta >= 0 ? "text-(--success)" : "text-(--danger)"
+						}`}
 					>
 						{deltaLabel}
 					</Text>
