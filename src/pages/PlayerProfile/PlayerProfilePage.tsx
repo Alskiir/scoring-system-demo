@@ -109,7 +109,7 @@ const MostPlayedPartnerCard = ({ partner }: MostPlayedPartnerProps) => (
 );
 
 const QuickStatsGrid = ({ stats }: StatsGridProps) => (
-	<div className="mt-5 grid gap-3 sm:grid-cols-3">
+	<div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 		{stats.map((stat) => (
 			<div
 				key={stat.label}
@@ -528,9 +528,15 @@ function PlayerProfilePage() {
 		return [
 			{ label: "Win percentage", value: `${stats.winPercentage}%` },
 			{
-				label: "Win streak",
+				label: "Current win streak",
 				value: `${stats.winStreak} match${
 					stats.winStreak === 1 ? "" : "es"
+				}`,
+			},
+			{
+				label: "Highest win streak",
+				value: `${stats.highestWinStreak} match${
+					stats.highestWinStreak === 1 ? "" : "es"
 				}`,
 			},
 			{ label: "Total matches", value: `${stats.totalMatches} played` },
@@ -565,7 +571,7 @@ function PlayerProfilePage() {
 			{
 				label: "Games won vs lost",
 				value: `${stats.gamesWon} / ${stats.gamesLost}`,
-				change: `${stats.winStreak} on current streak`,
+				change: `${stats.winStreak} current, best ${stats.highestWinStreak}`,
 				trend: stats.winStreak > 0 ? "up" : "down",
 			},
 			{

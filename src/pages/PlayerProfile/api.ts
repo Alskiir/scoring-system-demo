@@ -107,6 +107,7 @@ export type PlayerComputedStats = {
 	basics: PlayerBasics;
 	winPercentage: number;
 	winStreak: number;
+	highestWinStreak: number;
 	totalMatches: number;
 	gamesWon: number;
 	gamesLost: number;
@@ -437,24 +438,38 @@ export async function fetchPlayerLines(
 	return uniqueMatches;
 }
 
-const computeWinStreak = (lines: NormalizedPlayerLine[]) => {
-	let streak = 0;
-	const reversed = [...lines].sort((a, b) => {
+const computeWinStreaks = (lines: NormalizedPlayerLine[]) => {
+	const ordered = [...lines].sort((a, b) => {
 		const aTime = a.matchDate?.getTime() ?? 0;
 		const bTime = b.matchDate?.getTime() ?? 0;
-		return bTime - aTime;
+		return aTime - bTime;
 	});
 
-	for (const line of reversed) {
-		if (line.lineWin === null) break;
-		if (line.lineWin) {
-			streak += 1;
+	let longest = 0;
+	let running = 0;
+
+	for (const line of ordered) {
+		if (line.lineWin === true) {
+			running += 1;
+			if (running > longest) {
+				longest = running;
+			}
+		} else {
+			running = 0;
+		}
+	}
+
+	let current = 0;
+	for (let index = ordered.length - 1; index >= 0; index -= 1) {
+		const result = ordered[index]?.lineWin;
+		if (result === true) {
+			current += 1;
 		} else {
 			break;
 		}
 	}
 
-	return streak;
+	return { current, longest };
 };
 
 const buildPartnerStats = (
@@ -528,6 +543,7 @@ export async function fetchPlayerComputedStats(
 			basics,
 			winPercentage: 0,
 			winStreak: 0,
+			highestWinStreak: 0,
 			totalMatches: 0,
 			gamesWon: 0,
 			gamesLost: 0,
@@ -579,10 +595,14 @@ export async function fetchPlayerComputedStats(
 
 	const partner = buildPartnerStats(lines);
 
+	const { current: winStreak, longest: highestWinStreak } =
+		computeWinStreaks(lines);
+
 	return {
 		basics,
 		winPercentage,
-		winStreak: computeWinStreak(lines),
+		winStreak,
+		highestWinStreak,
 		totalMatches,
 		gamesWon,
 		gamesLost,
