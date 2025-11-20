@@ -5,3 +5,4 @@ export * from "./MatchHistory";
 export * from "./MatchEntry";
 export * from "./About";
 export * from "./AllTables";
+export * from "./PlayerProfile";

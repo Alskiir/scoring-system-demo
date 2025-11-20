@@ -5,6 +5,7 @@ import {
 	HomePage,
 	MatchEntryPage,
 	MatchHistoryPage,
+	PlayerProfilePage,
 	StandingsPage,
 	TeamsPage,
 } from "../pages";
@@ -45,6 +46,10 @@ const routeMeta = defineRoutes({
 	"all-tables": {
 		component: AllTablesPage,
 		label: "All Tables",
+	},
+	"player-profile": {
+		component: PlayerProfilePage,
+		label: "Player Profile",
 	},
 	about: {
 		component: AboutPage,
