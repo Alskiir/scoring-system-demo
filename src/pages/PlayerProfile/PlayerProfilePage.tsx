@@ -22,6 +22,14 @@ type TrendPoint = {
 	value: number;
 };
 
+type PartnerStat = {
+	name: string;
+	matches: number;
+	wins: number;
+	losses: number;
+	winPct: number;
+};
+
 type StatHighlight = {
 	label: string;
 	value: string;
@@ -30,13 +38,13 @@ type StatHighlight = {
 };
 
 const playerProfile: PlayerProfile = {
-	name: "Maya Ellis",
-	handle: "@mayaellis",
-	role: "Right-side attacker",
-	team: "SoCal Waves",
-	location: "San Diego, CA",
+	name: "Seth Cadler",
+	handle: "@sethcadler",
+	role: "Right-side Specialist",
+	team: "Evergreen Echoes",
+	location: "Florida, USA",
 	joined: "Joined 2022",
-	bio: "Aggressive third-shot drops, quick transitional defense, and a calm table-side voice make Maya the player every mixed squad wants anchoring the right half of the court.",
+	bio: "Relentless energy on the court and exceptional ability to read the game. Enjoys hiking and exploring new coffee shops.",
 	coverImage:
 		"https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80",
 	avatarImage:
@@ -65,6 +73,14 @@ const performanceTrend: TrendPoint[] = [
 	{ label: "M-2", value: 2 },
 	{ label: "M-1", value: 7 },
 ];
+
+const mostPlayedPartner: PartnerStat = {
+	name: "Elias Rivera",
+	matches: 12,
+	wins: 9,
+	losses: 3,
+	winPct: 75,
+};
 
 const statHighlights: StatHighlight[] = [
 	{
@@ -107,6 +123,10 @@ type StatsGridProps = {
 	stats: Stat[];
 };
 
+type MostPlayedPartnerProps = {
+	partner: PartnerStat;
+};
+
 const SocialStatsRow = ({ stats }: StatsGridProps) => (
 	<div className="mt-2 flex flex-wrap gap-5 text-sm text-(--text-secondary)">
 		{stats.map((stat) => (
@@ -119,6 +139,21 @@ const SocialStatsRow = ({ stats }: StatsGridProps) => (
 				</Text>
 			</span>
 		))}
+	</div>
+);
+
+const MostPlayedPartnerCard = ({ partner }: MostPlayedPartnerProps) => (
+	<div className="mt-5 rounded-2xl border border-(--border-subtle) bg-(--surface-panel) px-4 py-4 shadow-(--md-sys-elevation-1) sm:max-w-sm">
+		<Text variant="eyebrowMuted" size="xs">
+			Most played partner
+		</Text>
+		<Header level={4} size="lg" className="mt-1">
+			{partner.name}
+		</Header>
+		<Text variant="muted" size="sm" className="mt-1">
+			{partner.matches} matches &mdash; {partner.wins}-{partner.losses} (
+			{partner.winPct}% win rate)
+		</Text>
 	</div>
 );
 
@@ -207,6 +242,7 @@ const ProfileHero = ({
 
 			<SocialStatsRow stats={socialStats} />
 			<QuickStatsGrid stats={quickStats} />
+			<MostPlayedPartnerCard partner={mostPlayedPartner} />
 		</div>
 	</section>
 );
