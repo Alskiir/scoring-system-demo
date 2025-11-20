@@ -1,4 +1,13 @@
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Header, PageShell, Text } from "../../components";
+import {
+	fetchPlayerComputedStats,
+	type PartnerStats,
+	type PlayerComputedStats,
+} from "./api";
+
+const DEFAULT_PLAYER_ID = import.meta.env.VITE_DEFAULT_PLAYER_ID ?? "";
 
 type PlayerProfile = {
 	name: string;
@@ -22,14 +31,6 @@ type TrendPoint = {
 	value: number;
 };
 
-type PartnerStat = {
-	name: string;
-	matches: number;
-	wins: number;
-	losses: number;
-	winPct: number;
-};
-
 type StatHighlight = {
 	label: string;
 	value: string;
@@ -37,7 +38,7 @@ type StatHighlight = {
 	trend: "up" | "down";
 };
 
-const playerProfile: PlayerProfile = {
+const FALLBACK_PROFILE: PlayerProfile = {
 	name: "Seth Cadler",
 	handle: "@sethcadler",
 	role: "Right-side Specialist",
@@ -51,19 +52,19 @@ const playerProfile: PlayerProfile = {
 		"https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=600&q=80",
 };
 
-const socialStats: Stat[] = [
-	{ label: "Games won", value: "18" },
-	{ label: "Games lost", value: "5" },
-	{ label: "Lines won / match", value: "2.3 avg" },
-];
-
-const quickStats: Stat[] = [
+const FALLBACK_QUICK_STATS: Stat[] = [
 	{ label: "Win percentage", value: "78%" },
 	{ label: "Win streak", value: "5 matches" },
 	{ label: "Total matches", value: "23 played" },
 ];
 
-const performanceTrend: TrendPoint[] = [
+const FALLBACK_SOCIAL_STATS: Stat[] = [
+	{ label: "Games won", value: "18" },
+	{ label: "Games lost", value: "5" },
+	{ label: "Lines won / match", value: "2.3 avg" },
+];
+
+const FALLBACK_TREND: TrendPoint[] = [
 	{ label: "M-8", value: 4 },
 	{ label: "M-7", value: 6 },
 	{ label: "M-6", value: 3 },
@@ -74,15 +75,7 @@ const performanceTrend: TrendPoint[] = [
 	{ label: "M-1", value: 7 },
 ];
 
-const mostPlayedPartner: PartnerStat = {
-	name: "Elias Rivera",
-	matches: 12,
-	wins: 9,
-	losses: 3,
-	winPct: 75,
-};
-
-const statHighlights: StatHighlight[] = [
+const FALLBACK_HIGHLIGHTS: StatHighlight[] = [
 	{
 		label: "Average point differential",
 		value: "+4.3 pts",
@@ -102,6 +95,14 @@ const statHighlights: StatHighlight[] = [
 		trend: "up",
 	},
 ];
+
+const FALLBACK_PARTNER: PartnerStats = {
+	name: "Elias Rivera",
+	matches: 12,
+	wins: 9,
+	losses: 3,
+	winPct: 75,
+};
 
 type PlayerAvatarProps = {
 	src: string;
@@ -124,7 +125,7 @@ type StatsGridProps = {
 };
 
 type MostPlayedPartnerProps = {
-	partner: PartnerStat;
+	partner: PartnerStats | null;
 };
 
 const SocialStatsRow = ({ stats }: StatsGridProps) => (
@@ -147,13 +148,21 @@ const MostPlayedPartnerCard = ({ partner }: MostPlayedPartnerProps) => (
 		<Text variant="eyebrowMuted" size="xs">
 			Most played partner
 		</Text>
-		<Header level={4} size="lg" className="mt-1">
-			{partner.name}
-		</Header>
-		<Text variant="muted" size="sm" className="mt-1">
-			{partner.matches} matches &mdash; {partner.wins}-{partner.losses} (
-			{partner.winPct}% win rate)
-		</Text>
+		{partner ? (
+			<>
+				<Header level={4} size="lg" className="mt-1">
+					{partner.name}
+				</Header>
+				<Text variant="muted" size="sm" className="mt-1">
+					{partner.matches} matches &mdash; {partner.wins}-
+					{partner.losses} ({partner.winPct}% win rate)
+				</Text>
+			</>
+		) : (
+			<Text variant="muted" size="sm" className="mt-1">
+				No partner data yet. Play a match to see this fill in.
+			</Text>
+		)}
 	</div>
 );
 
@@ -179,12 +188,14 @@ type ProfileHeroProps = {
 	profile: PlayerProfile;
 	socialStats: Stat[];
 	quickStats: Stat[];
+	partner: PartnerStats | null;
 };
 
 const ProfileHero = ({
 	profile,
 	socialStats,
 	quickStats,
+	partner,
 }: ProfileHeroProps) => (
 	<section className="md-card p-0">
 		<div className="relative h-56 w-full overflow-hidden rounded-t-(--md-sys-shape-corner-extra-large) bg-(--surface-hover)">
@@ -242,7 +253,7 @@ const ProfileHero = ({
 
 			<SocialStatsRow stats={socialStats} />
 			<QuickStatsGrid stats={quickStats} />
-			<MostPlayedPartnerCard partner={mostPlayedPartner} />
+			<MostPlayedPartnerCard partner={partner} />
 		</div>
 	</section>
 );
@@ -391,9 +402,18 @@ const StatTrendChart = ({ data }: StatTrendChartProps) => {
 	);
 };
 
-const PlayerStatsGraph = () => {
-	const startingPoint = performanceTrend[0];
-	const latestPoint = performanceTrend[performanceTrend.length - 1];
+type PlayerStatsGraphProps = {
+	trend: TrendPoint[];
+	statHighlights: StatHighlight[];
+};
+
+const PlayerStatsGraph = ({ trend, statHighlights }: PlayerStatsGraphProps) => {
+	if (!trend.length) {
+		return null;
+	}
+
+	const startingPoint = trend[0];
+	const latestPoint = trend[trend.length - 1];
 	const delta = latestPoint.value - startingPoint.value;
 	const deltaLabel = `${delta >= 0 ? "+" : ""}${delta.toFixed(1)} pts since ${
 		startingPoint.label
@@ -410,8 +430,8 @@ const PlayerStatsGraph = () => {
 						Point differential per match
 					</Header>
 					<Text variant="muted" size="sm">
-						Points for minus points against, across her eight most
-						recent recorded matches.
+						Points for minus points against, across the most recent
+						recorded matches this player appeared in.
 					</Text>
 				</div>
 				<div className="rounded-[18px] border border-(--border-highlight) bg-(--surface-raised) px-4 py-3 text-right shadow-(--md-sys-elevation-1)">
@@ -435,7 +455,7 @@ const PlayerStatsGraph = () => {
 			</div>
 
 			<div className="mt-6 rounded-[22px] border border-(--border-subtle) bg-(--surface-card) p-4">
-				<StatTrendChart data={performanceTrend} />
+				<StatTrendChart data={trend} />
 			</div>
 
 			<div className="mt-6 grid gap-3 md:grid-cols-3">
@@ -476,7 +496,147 @@ const PlayerStatsGraph = () => {
 	);
 };
 
+const formatSigned = (value: number, suffix = "") => {
+	const rounded = Number(value.toFixed(2));
+	const prefix = rounded > 0 ? "+" : "";
+	return `${prefix}${rounded}${suffix}`;
+};
+
+const isValidUuid = (value: string) =>
+	/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
+		value.trim()
+	);
+
 function PlayerProfilePage() {
+	const [searchParams] = useSearchParams();
+	const playerId = searchParams.get("playerId") ?? DEFAULT_PLAYER_ID;
+	const [stats, setStats] = useState<PlayerComputedStats | null>(null);
+	const [error, setError] = useState<string | null>(null);
+	const [loading, setLoading] = useState(false);
+
+	useEffect(() => {
+		let cancelled = false;
+		if (!playerId) {
+			setStats(null);
+			setError("Add ?playerId=<person id> to load real player data.");
+			return;
+		}
+
+		if (!isValidUuid(playerId)) {
+			setStats(null);
+			setError("Player id must be a valid UUID.");
+			return;
+		}
+
+		setLoading(true);
+		setError(null);
+
+		fetchPlayerComputedStats(playerId)
+			.then((result) => {
+				if (!cancelled) {
+					setStats(result);
+				}
+			})
+			.catch((err) => {
+				if (!cancelled) {
+					setError(
+						err instanceof Error
+							? err.message
+							: "Unable to load player data."
+					);
+					setStats(null);
+				}
+			})
+			.finally(() => {
+				if (!cancelled) {
+					setLoading(false);
+				}
+			});
+
+		return () => {
+			cancelled = true;
+		};
+	}, [playerId]);
+
+	const profile: PlayerProfile = useMemo(() => {
+		if (!stats) {
+			return FALLBACK_PROFILE;
+		}
+
+		return {
+			...FALLBACK_PROFILE,
+			name: stats.basics.fullName || FALLBACK_PROFILE.name,
+			handle: stats.basics.handle || FALLBACK_PROFILE.handle,
+			team: stats.basics.teamName || FALLBACK_PROFILE.team,
+			location: stats.basics.teamLocation || FALLBACK_PROFILE.location,
+			joined: stats.basics.joinedLabel || FALLBACK_PROFILE.joined,
+		};
+	}, [stats]);
+
+	const quickStats: Stat[] = useMemo(() => {
+		if (!stats) return FALLBACK_QUICK_STATS;
+		return [
+			{ label: "Win percentage", value: `${stats.winPercentage}%` },
+			{
+				label: "Win streak",
+				value: `${stats.winStreak} match${
+					stats.winStreak === 1 ? "" : "es"
+				}`,
+			},
+			{ label: "Total matches", value: `${stats.totalMatches} played` },
+		];
+	}, [stats]);
+
+	const socialStats: Stat[] = useMemo(() => {
+		if (!stats) return FALLBACK_SOCIAL_STATS;
+		return [
+			{ label: "Games won", value: `${stats.gamesWon}` },
+			{ label: "Games lost", value: `${stats.gamesLost}` },
+			{
+				label: "Lines won / match",
+				value: `${stats.linesPerMatch.toFixed(2)} avg`,
+			},
+		];
+	}, [stats]);
+
+	const trend: TrendPoint[] = useMemo(
+		() => (stats ? stats.trend : FALLBACK_TREND),
+		[stats]
+	);
+
+	const statHighlights: StatHighlight[] = useMemo(() => {
+		if (!stats) return FALLBACK_HIGHLIGHTS;
+		return [
+			{
+				label: "Average point differential",
+				value: `${formatSigned(stats.avgPointDifferential, " pts")}`,
+				change: stats.trend.length
+					? `Across last ${stats.trend.length} matches`
+					: "Across recorded matches",
+				trend: stats.avgPointDifferential >= 0 ? "up" : "down",
+			},
+			{
+				label: "Games won vs lost",
+				value: `${stats.gamesWon} / ${stats.gamesLost}`,
+				change: `${stats.winStreak} on current streak`,
+				trend: stats.winStreak > 0 ? "up" : "down",
+			},
+			{
+				label: "Lines won per match",
+				value: `${stats.linesPerMatch.toFixed(2)} avg`,
+				change: formatSigned(
+					stats.linesPerMatch - 1,
+					" vs neutral 1.0"
+				),
+				trend: stats.linesPerMatch >= 1 ? "up" : "down",
+			},
+		];
+	}, [stats]);
+
+	const partner: PartnerStats | null = stats
+		? stats.partner
+		: FALLBACK_PARTNER;
+
 	return (
 		<PageShell
 			title="Player Profile"
@@ -485,11 +645,25 @@ function PlayerProfilePage() {
 		>
 			<div className="flex flex-col gap-6">
 				<ProfileHero
-					profile={playerProfile}
+					profile={profile}
 					socialStats={socialStats}
 					quickStats={quickStats}
+					partner={partner}
 				/>
-				<PlayerStatsGraph />
+				{loading ? (
+					<div className="rounded-2xl border border-(--border-subtle) bg-(--surface-panel) p-6 text-(--text-muted)">
+						Loading player stats...
+					</div>
+				) : error ? (
+					<div className="rounded-2xl border border-(--border-subtle) bg-(--surface-panel) p-6 text-(--danger)">
+						{error}
+					</div>
+				) : (
+					<PlayerStatsGraph
+						trend={trend}
+						statHighlights={statHighlights}
+					/>
+				)}
 			</div>
 		</PageShell>
 	);
