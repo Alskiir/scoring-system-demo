@@ -302,7 +302,7 @@ export async function fetchPlayerBasics(
 		teamName: team?.name ?? "Independent player",
 		teamLocation: team?.location ?? "Location unknown",
 		joinedLabel: membership?.start_date
-			? `Joined ${new Date(membership.start_date).getFullYear()}`
+			? `Joined ${membership.start_date.split("-")[0]}`
 			: "Active",
 		bio: profile?.bio?.trim() || null,
 		avatarUrl: profile?.avatar_url || null,
