@@ -104,7 +104,7 @@ export const buildMatchHistoryColumns = (
 		align: "center",
 		accessor: (row) => (
 			<div className="flex flex-col items-center gap-1">
-				<div className="flex items-center gap-x-2">
+				<div className="flex items-center gap-x-2 mx-4">
 					<Text as="span" variant="strong" size="lg">
 						{row.gamesWon}
 					</Text>
