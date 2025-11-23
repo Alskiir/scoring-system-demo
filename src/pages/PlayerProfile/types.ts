@@ -29,6 +29,15 @@ export type StatHighlight = {
 	trend: "up" | "down";
 };
 
+export type TeamHistoryItem = {
+	id: string;
+	teamName: string;
+	location: string;
+	rangeLabel: string;
+	durationLabel: string;
+	isCurrent: boolean;
+};
+
 export type PlayerProfileViewModel = {
 	profile: PlayerProfile | null;
 	quickStats: Stat[];
@@ -36,6 +45,7 @@ export type PlayerProfileViewModel = {
 	trend: TrendPoint[];
 	statHighlights: StatHighlight[];
 	partner: PartnerStats | null;
+	teamHistory: TeamHistoryItem[];
 	hasStats: boolean;
 	hasMatches: boolean;
 	loading: boolean;

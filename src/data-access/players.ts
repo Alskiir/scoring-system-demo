@@ -16,13 +16,18 @@ import {
 	type PlayerBasics,
 	type PlayerComputedStats,
 	type PlayerProfileRow,
+	type PlayerTeamMembership,
 	type RawPlayerLineRow,
 	type TeamMembershipRow,
 } from "./players.types";
 import { normalizePlayerLines } from "./players.transforms";
 import { normalizeRelation } from "./supabaseHelpers";
 
-export type { PartnerStats, PlayerComputedStats } from "./players.types";
+export type {
+	PartnerStats,
+	PlayerComputedStats,
+	PlayerTeamMembership,
+} from "./players.types";
 
 const PLAYER_LINE_SELECTION = `
 	id,
@@ -69,6 +74,22 @@ const MEMBERSHIP_SELECTION = `
 	)
 `;
 
+const normalizeMemberships = (
+	memberships: TeamMembershipRow[]
+): PlayerTeamMembership[] =>
+	memberships.map((membership) => {
+		const team = normalizeRelation(membership.team);
+
+		return {
+			id: String(membership.id),
+			teamId: String(membership.team_id),
+			teamName: team?.name ?? "Unknown team",
+			teamLocation: team?.location ?? null,
+			startDate: membership.start_date,
+			endDate: membership.end_date,
+		};
+	});
+
 export async function getPlayerBasics(playerId: string): Promise<PlayerBasics> {
 	const [person, profile] = await Promise.all([
 		resolveSupabase<PersonRow>(
@@ -89,18 +110,17 @@ export async function getPlayerBasics(playerId: string): Promise<PlayerBasics> {
 		),
 	]);
 
-	const memberships = await resolveSupabase<TeamMembershipRow[]>(
+	const membershipRows = await resolveSupabase<TeamMembershipRow[]>(
 		supabase
 			.from("team_membership")
 			.select(MEMBERSHIP_SELECTION)
 			.eq("person_id", playerId)
-			.order("start_date", { ascending: false })
-			.limit(1),
+			.order("start_date", { ascending: false }),
 		{ fallbackValue: [], errorMessage: "Unable to load team membership." }
 	);
 
-	const membership = memberships[0];
-	const team = membership ? normalizeRelation(membership.team) : null;
+	const memberships = normalizeMemberships(membershipRows);
+	const membership = memberships[0] ?? null;
 	const fullName = formatFullName(person.first_name, person.last_name);
 	const preferred = person.preferred_name?.trim();
 	const profileHandle = profile?.handle?.trim();
@@ -116,14 +136,15 @@ export async function getPlayerBasics(playerId: string): Promise<PlayerBasics> {
 		playerId,
 		fullName,
 		handle: normalizedHandle,
-		teamName: team?.name ?? "Independent player",
-		teamLocation: team?.location ?? "Location unknown",
-		joinedLabel: membership?.start_date
-			? `Joined ${membership.start_date.split("-")[0]}`
+		teamName: membership?.teamName ?? "Independent player",
+		teamLocation: membership?.teamLocation ?? "Location unknown",
+		joinedLabel: membership?.startDate
+			? `Joined ${membership.startDate.split("-")[0]}`
 			: "Active",
 		bio: profile?.bio?.trim() || null,
 		avatarUrl: profile?.avatar_url || null,
 		coverUrl: profile?.cover_url || null,
+		memberships,
 	};
 }
 

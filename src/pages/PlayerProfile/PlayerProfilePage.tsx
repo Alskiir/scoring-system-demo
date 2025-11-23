@@ -1,6 +1,7 @@
 import { BaseCard, PageShell } from "../../components";
 import ProfileHero from "./components/ProfileHero";
 import PlayerStatsGraph from "./components/PlayerStatsGraph";
+import TeamHistoryCard from "./components/TeamHistoryCard";
 import { usePlayerProfile } from "./hooks/usePlayerProfile";
 
 function PlayerProfilePage() {
@@ -11,6 +12,7 @@ function PlayerProfilePage() {
 		partner,
 		trend,
 		statHighlights,
+		teamHistory,
 		hasStats,
 		hasMatches,
 		loading,
@@ -42,6 +44,7 @@ function PlayerProfilePage() {
 					quickStats={quickStats}
 					partner={partner}
 				/>
+				<TeamHistoryCard history={teamHistory} />
 				{hasMatches ? (
 					<PlayerStatsGraph
 						trend={trend}

@@ -14,6 +14,7 @@ export type TeamRow = {
 };
 
 export type TeamMembershipRow = {
+	id: string;
 	team_id: string;
 	start_date: string | null;
 	end_date: string | null;
@@ -83,6 +84,7 @@ export type PlayerBasics = {
 	bio: string | null;
 	avatarUrl: string | null;
 	coverUrl: string | null;
+	memberships: PlayerTeamMembership[];
 };
 
 export type PartnerStats = {
@@ -114,4 +116,13 @@ export type PlayerComputedStats = {
 	avgPointDifferential: number;
 	trend: { label: string; value: number }[];
 	partner: PartnerStats | null;
+};
+
+export type PlayerTeamMembership = {
+	id: string;
+	teamId: string;
+	teamName: string;
+	teamLocation: string | null;
+	startDate: string | null;
+	endDate: string | null;
 };
