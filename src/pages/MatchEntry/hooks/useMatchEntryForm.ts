@@ -7,6 +7,7 @@ import type { PlayerOption, ToastState } from "../types";
 import { useTeams } from "../../../hooks/useTeams";
 import { useAutofillMatch } from "./useAutofillMatch";
 import { useLinesState } from "./useLinesState";
+import { useTeamRoster } from "./useTeamRoster";
 import { validateMatchEntryForm } from "./validateMatchEntryForm";
 
 export const useMatchEntryForm = () => {
@@ -57,16 +58,6 @@ export const useMatchEntryForm = () => {
 		});
 	}, [teamsError]);
 
-	const getRosterForTeam = useCallback(async (teamId: string) => {
-		const cached = rosterCacheRef.current.get(teamId);
-		if (cached) {
-			return cached;
-		}
-		const roster = await getPlayersForTeam(teamId);
-		rosterCacheRef.current.set(teamId, roster);
-		return roster;
-	}, []);
-
 	const ensureTeamsAvailable = useCallback(async () => {
 		if (teams.length) {
 			return teams;
@@ -74,6 +65,82 @@ export const useMatchEntryForm = () => {
 
 		return refetchTeams();
 	}, [refetchTeams, teams]);
+
+	const homeRosterQuery = useTeamRoster(homeTeamId, {
+		initialData: rosterCacheRef.current.get(homeTeamId) ?? undefined,
+		staleTime: 10 * 60_000,
+	});
+	const awayRosterQuery = useTeamRoster(awayTeamId, {
+		initialData: rosterCacheRef.current.get(awayTeamId) ?? undefined,
+		staleTime: 10 * 60_000,
+	});
+
+	useEffect(() => {
+		if (homeTeamId && homeRosterQuery.data !== null) {
+			setHomePlayers(homeRosterQuery.roster);
+			rosterCacheRef.current.set(homeTeamId, homeRosterQuery.roster);
+		} else if (!homeTeamId) {
+			setHomePlayers([]);
+		}
+	}, [homeRosterQuery.data, homeRosterQuery.roster, homeTeamId]);
+
+	useEffect(() => {
+		if (homeRosterQuery.error) {
+			setToast({
+				type: "error",
+				message: "Unable to load players for the selected home team.",
+			});
+		}
+	}, [homeRosterQuery.error]);
+
+	useEffect(() => {
+		if (awayTeamId && awayRosterQuery.data !== null) {
+			setAwayPlayers(awayRosterQuery.roster);
+			rosterCacheRef.current.set(awayTeamId, awayRosterQuery.roster);
+		} else if (!awayTeamId) {
+			setAwayPlayers([]);
+		}
+	}, [awayRosterQuery.data, awayRosterQuery.roster, awayTeamId]);
+
+	useEffect(() => {
+		if (awayRosterQuery.error) {
+			setToast({
+				type: "error",
+				message: "Unable to load players for the selected away team.",
+			});
+		}
+	}, [awayRosterQuery.error]);
+
+	const getRosterForTeam = useCallback(
+		async (teamId: string) => {
+			if (!teamId) {
+				return [];
+			}
+
+			const cached = rosterCacheRef.current.get(teamId);
+			if (cached) {
+				return cached;
+			}
+
+			const roster =
+				teamId === homeTeamId && homeRosterQuery.data !== null
+					? homeRosterQuery.roster
+					: teamId === awayTeamId && awayRosterQuery.data !== null
+					? awayRosterQuery.roster
+					: await getPlayersForTeam(teamId);
+
+			rosterCacheRef.current.set(teamId, roster);
+			return roster;
+		},
+		[
+			awayRosterQuery.data,
+			awayRosterQuery.roster,
+			awayTeamId,
+			homeRosterQuery.data,
+			homeRosterQuery.roster,
+			homeTeamId,
+		]
+	);
 
 	const { autofillMatch, isAutofilling } = useAutofillMatch({
 		lines,
@@ -110,40 +177,6 @@ export const useMatchEntryForm = () => {
 		if (awayTeam) return `${awayTeam.name} (A)`;
 		return "Match Entry";
 	}, [awayTeam, homeTeam]);
-
-	useEffect(() => {
-		let isActive = true;
-		const loadPlayers = async (
-			teamId: string,
-			setPlayers: typeof setHomePlayers
-		) => {
-			if (!teamId) {
-				setPlayers([]);
-				return;
-			}
-
-			try {
-				const roster = await getRosterForTeam(teamId);
-				if (!isActive) return;
-				setPlayers(roster);
-			} catch (error) {
-				if (!isActive) return;
-				console.error(error);
-				setToast({
-					type: "error",
-					message: "Unable to load players for the selected team.",
-				});
-				setPlayers([]);
-			}
-		};
-
-		loadPlayers(homeTeamId, setHomePlayers);
-		loadPlayers(awayTeamId, setAwayPlayers);
-
-		return () => {
-			isActive = false;
-		};
-	}, [awayTeamId, getRosterForTeam, homeTeamId, setToast]);
 
 	const resetLinesForTeamChange = useCallback(
 		(

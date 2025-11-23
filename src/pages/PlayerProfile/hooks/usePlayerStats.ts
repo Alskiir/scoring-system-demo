@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback } from "react";
 import {
 	getPlayerComputedStats,
 	type PlayerComputedStats,
 } from "../../../data-access/players";
+import { useAsyncResource } from "../../../hooks/useAsyncResource";
 
 type UsePlayerStatsResult = {
 	stats: PlayerComputedStats | null;
@@ -16,61 +17,38 @@ const isValidUuid = (value: string) =>
 	);
 
 export function usePlayerStats(playerId: string): UsePlayerStatsResult {
-	const [stats, setStats] = useState<PlayerComputedStats | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const [loading, setLoading] = useState(true);
+	const normalizedPlayerId = playerId?.trim() ?? "";
+	const isValidId = normalizedPlayerId
+		? isValidUuid(normalizedPlayerId)
+		: false;
 
-	useEffect(() => {
-		let cancelled = false;
+	const fetchPlayerStats = useCallback(
+		() => getPlayerComputedStats(normalizedPlayerId),
+		[normalizedPlayerId]
+	);
 
-		if (!playerId) {
-			setStats(null);
-			setError("Add ?playerId=<person id> to load real player data.");
-			setLoading(false);
-			return () => {
-				cancelled = true;
-			};
+	const statsQuery = useAsyncResource<PlayerComputedStats>(
+		`playerStats:${normalizedPlayerId || "none"}`,
+		fetchPlayerStats,
+		{
+			enabled: isValidId,
+			staleTime: 5 * 60_000,
 		}
+	);
 
-		if (!isValidUuid(playerId)) {
-			setStats(null);
-			setError("Player id must be a valid UUID.");
-			setLoading(false);
-			return () => {
-				cancelled = true;
-			};
-		}
+	const error = !normalizedPlayerId
+		? "Add ?playerId=<person id> to load real player data."
+		: !isValidId
+		? "Player id must be a valid UUID."
+		: statsQuery.error?.message ?? null;
 
-		setLoading(true);
-		setStats(null);
-		setError(null);
+	const loading = isValidId
+		? statsQuery.isLoading || statsQuery.isFetching
+		: false;
 
-		getPlayerComputedStats(playerId)
-			.then((result) => {
-				if (!cancelled) {
-					setStats(result);
-				}
-			})
-			.catch((err) => {
-				if (!cancelled) {
-					setError(
-						err instanceof Error
-							? err.message
-							: "Unable to load player data."
-					);
-					setStats(null);
-				}
-			})
-			.finally(() => {
-				if (!cancelled) {
-					setLoading(false);
-				}
-			});
-
-		return () => {
-			cancelled = true;
-		};
-	}, [playerId]);
-
-	return { stats, loading, error };
+	return {
+		stats: isValidId ? statsQuery.data : null,
+		loading,
+		error,
+	};
 }
