@@ -44,7 +44,6 @@ function PlayerProfilePage() {
 					quickStats={quickStats}
 					partner={partner}
 				/>
-				<TeamHistoryCard history={teamHistory} />
 				{hasMatches ? (
 					<PlayerStatsGraph
 						trend={trend}
@@ -53,6 +52,7 @@ function PlayerProfilePage() {
 				) : (
 					<BaseCard description="No match data recorded for this player yet." />
 				)}
+				<TeamHistoryCard history={teamHistory} />
 			</div>
 		);
 	}

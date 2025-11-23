@@ -27,7 +27,7 @@ const TeamHistoryCard = ({ history }: TeamHistoryCardProps) => {
 						<li key={item.id} className="flex gap-4">
 							<div className="relative flex w-6 justify-center">
 								<span
-									className={`mt-1 h-3 w-3 rounded-full border-2 border-(--surface-panel) shadow-(--md-sys-elevation-1) ${
+									className={`mt-1 h-3 w-3 rounded-full border-2 border-(--surface-panel) ${
 										item.isCurrent
 											? "bg-(--accent)"
 											: "bg-(--surface-hover)"
@@ -60,14 +60,6 @@ const TeamHistoryCard = ({ history }: TeamHistoryCardProps) => {
 										{item.rangeLabel}
 									</span>
 								</div>
-								<Text
-									variant="muted"
-									size="sm"
-									className="mt-2"
-								>
-									{item.durationLabel}
-									{item.isCurrent ? " · Current team" : ""}
-								</Text>
 							</div>
 						</li>
 					))}
