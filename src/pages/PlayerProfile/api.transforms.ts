@@ -1,19 +1,10 @@
-import { formatFullName } from "../../utils/dataTransforms";
+import {
+	coerceNumber,
+	formatFullName,
+	takeFirstRelationValue,
+} from "../../utils/dataTransforms";
 import type { SupabaseRelation } from "../../types/league";
 import type { NormalizedPlayerLine, RawPlayerLineRow } from "./api.types";
-
-const parseNumber = (value: unknown): number | null => {
-	if (typeof value === "number" && Number.isFinite(value)) {
-		return value;
-	}
-
-	if (typeof value === "string") {
-		const parsed = Number(value);
-		return Number.isFinite(parsed) ? parsed : null;
-	}
-
-	return null;
-};
 
 const normalizeTimeOffset = (time: string): string => {
 	if (!time) return time;
@@ -48,17 +39,13 @@ const parseDateTime = (
 	return Number.isNaN(parsedDateOnly.valueOf()) ? null : parsedDateOnly;
 };
 
-export const normalizeRelation = <T>(relation: T | T[] | null): T | null => {
-	if (!relation) return null;
-	if (Array.isArray(relation)) {
-		return relation.length ? relation[0]! : null;
-	}
-	return relation;
-};
+export const normalizeRelation = <T>(relation: SupabaseRelation<T>): T | null =>
+	takeFirstRelationValue(relation);
 
 const normalizeToArray = <T>(relation: SupabaseRelation<T>): T[] => {
 	if (!relation) return [];
-	return Array.isArray(relation) ? relation : [relation];
+	const values = Array.isArray(relation) ? relation : [relation];
+	return values.filter(Boolean) as T[];
 };
 
 const dedupeLinesByMatch = (
@@ -88,12 +75,14 @@ const dedupeLinesByMatch = (
 	return Array.from(byMatch.values());
 };
 
+const matchLabelFormatter = new Intl.DateTimeFormat("en", {
+	month: "short",
+	day: "numeric",
+});
+
 const formatMatchLabel = (matchDate: Date | null): string => {
 	if (!matchDate) return "Recent";
-	return new Intl.DateTimeFormat("en", {
-		month: "short",
-		day: "numeric",
-	}).format(matchDate);
+	return matchLabelFormatter.format(matchDate);
 };
 
 const mapLineRow = (
@@ -105,7 +94,7 @@ const mapLineRow = (
 	if (!match) return null;
 
 	const matchDate = parseDateTime(match.match_date, match.match_time);
-	const matchLabel = formatMatchLabel(matchDate) || `M-${index + 1}`;
+	const matchLabel = formatMatchLabel(matchDate);
 	const lineNumber =
 		typeof row.line_number === "number" && Number.isFinite(row.line_number)
 			? row.line_number
@@ -148,8 +137,8 @@ const mapLineRow = (
 
 	const games = gamesArray
 		.map((game) => {
-			const homeScore = parseNumber(game.home_score);
-			const awayScore = parseNumber(game.away_score);
+			const homeScore = coerceNumber(game.home_score);
+			const awayScore = coerceNumber(game.away_score);
 
 			if (homeScore === null || awayScore === null) {
 				return null;

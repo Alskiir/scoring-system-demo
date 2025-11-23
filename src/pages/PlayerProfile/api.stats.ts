@@ -13,12 +13,42 @@ export type LineAggregates = {
 	pointDifferential: number;
 };
 
+const isChronological = (lines: NormalizedPlayerLine[]): boolean => {
+	for (let index = 1; index < lines.length; index += 1) {
+		const prevTime = lines[index - 1]?.matchDate?.getTime() ?? 0;
+		const currentTime = lines[index]?.matchDate?.getTime() ?? 0;
+		if (currentTime < prevTime) {
+			return false;
+		}
+	}
+	return true;
+};
+
+const ensureChronological = (
+	lines: NormalizedPlayerLine[]
+): NormalizedPlayerLine[] =>
+	isChronological(lines)
+		? lines
+		: [...lines].sort((a, b) => {
+				const aTime = a.matchDate?.getTime() ?? 0;
+				const bTime = b.matchDate?.getTime() ?? 0;
+				return aTime - bTime;
+		  });
+
+const toPercentage = (wins: number, total: number) =>
+	total > 0 ? Math.round((wins / total) * 100) : 0;
+
+const toAverage = (sum: number, count: number, precision = 2) =>
+	count > 0 ? Number((sum / count).toFixed(precision)) : 0;
+
+const linePointDifferential = (line: NormalizedPlayerLine) =>
+	line.games.reduce(
+		(total, game) => total + (game.forScore - game.againstScore),
+		0
+	);
+
 export const computeWinStreaks = (lines: NormalizedPlayerLine[]) => {
-	const ordered = [...lines].sort((a, b) => {
-		const aTime = a.matchDate?.getTime() ?? 0;
-		const bTime = b.matchDate?.getTime() ?? 0;
-		return aTime - bTime;
-	});
+	const ordered = ensureChronological(lines);
 
 	let longest = 0;
 	let running = 0;
@@ -34,58 +64,45 @@ export const computeWinStreaks = (lines: NormalizedPlayerLine[]) => {
 		}
 	}
 
-	let current = 0;
-	for (let index = ordered.length - 1; index >= 0; index -= 1) {
-		const result = ordered[index]?.lineWin;
-		if (result === true) {
-			current += 1;
-		} else {
-			break;
-		}
-	}
-
-	return { current, longest };
+	return { current: running, longest };
 };
 
 export const buildPartnerStats = (
 	lines: NormalizedPlayerLine[]
 ): PartnerStats | null => {
-	const map = new Map<
-		string,
-		{ name: string; matches: number; wins: number; losses: number }
-	>();
+	const map = new Map<string, PartnerStats & { winPct?: number }>();
 
-	lines.forEach((line) => {
-		if (!line.partner) return;
-		const entry = map.get(line.partner.id) ?? {
-			name: line.partner.fullName,
+	for (const line of lines) {
+		const partner = line.partner;
+		if (!partner) continue;
+
+		const entry = map.get(partner.id) ?? {
+			name: partner.fullName,
 			matches: 0,
 			wins: 0,
 			losses: 0,
+			winPct: 0,
 		};
 
 		entry.matches += 1;
-		if (line.lineWin) {
+		if (line.lineWin === true) {
 			entry.wins += 1;
 		} else if (line.lineWin === false) {
 			entry.losses += 1;
 		}
-		map.set(line.partner.id, entry);
-	});
+
+		map.set(partner.id, entry);
+	}
 
 	let best: PartnerStats | null = null;
 
 	for (const [, value] of map) {
-		const winPct =
-			value.matches > 0
-				? Math.round((value.wins / value.matches) * 100)
-				: 0;
 		const candidate: PartnerStats = {
 			name: value.name,
 			matches: value.matches,
 			wins: value.wins,
 			losses: value.losses,
-			winPct,
+			winPct: toPercentage(value.wins, value.matches),
 		};
 
 		if (!best) {
@@ -108,53 +125,46 @@ export const buildPartnerStats = (
 export const buildLineAggregates = (
 	lines: NormalizedPlayerLine[]
 ): LineAggregates => {
-	let gamesWon = 0;
-	let gamesLost = 0;
-	let linesWon = 0;
-	let linesLost = 0;
-	let pointDifferential = 0;
+	const totals = lines.reduce(
+		(acc, line) => {
+			const { games, lineWin } = line;
+			if (lineWin === true) acc.linesWon += 1;
+			else if (lineWin === false) acc.linesLost += 1;
 
-	lines.forEach((line) => {
-		const { games, lineWin } = line;
-		if (lineWin === true) linesWon += 1;
-		else if (lineWin === false) linesLost += 1;
+			for (const game of games) {
+				const margin = game.forScore - game.againstScore;
+				acc.pointDifferential += margin;
+				if (margin > 0) acc.gamesWon += 1;
+				else if (margin < 0) acc.gamesLost += 1;
+			}
 
-		games.forEach((game) => {
-			const margin = game.forScore - game.againstScore;
-			pointDifferential += margin;
-			if (margin > 0) gamesWon += 1;
-			if (margin < 0) gamesLost += 1;
-		});
-	});
+			return acc;
+		},
+		{
+			gamesWon: 0,
+			gamesLost: 0,
+			linesWon: 0,
+			linesLost: 0,
+			pointDifferential: 0,
+		}
+	);
 
 	const totalMatches = lines.length;
-	const winPercentage =
-		totalMatches > 0 ? Math.round((linesWon / totalMatches) * 100) : 0;
-	const linesPerMatch =
-		totalMatches > 0 ? Number((linesWon / totalMatches).toFixed(2)) : 0;
-	const avgPointDifferential =
-		totalMatches > 0
-			? Number((pointDifferential / totalMatches).toFixed(2))
-			: 0;
-
-	const trend = lines.slice(-8).map((line) => {
-		const diff = line.games.reduce(
-			(total, game) => total + (game.forScore - game.againstScore),
-			0
-		);
-		return { label: line.matchLabel, value: diff };
-	});
+	const trend = lines.slice(-8).map((line) => ({
+		label: line.matchLabel,
+		value: linePointDifferential(line),
+	}));
 
 	return {
-		gamesWon,
-		gamesLost,
-		linesWon,
-		linesLost,
+		gamesWon: totals.gamesWon,
+		gamesLost: totals.gamesLost,
+		linesWon: totals.linesWon,
+		linesLost: totals.linesLost,
 		totalMatches,
-		winPercentage,
-		linesPerMatch,
-		avgPointDifferential,
+		winPercentage: toPercentage(totals.linesWon, totalMatches),
+		linesPerMatch: toAverage(totals.linesWon, totalMatches),
+		avgPointDifferential: toAverage(totals.pointDifferential, totalMatches),
 		trend,
-		pointDifferential,
+		pointDifferential: totals.pointDifferential,
 	};
 };

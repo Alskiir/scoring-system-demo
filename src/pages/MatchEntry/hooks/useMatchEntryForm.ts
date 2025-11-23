@@ -57,7 +57,7 @@ export const useMatchEntryForm = () => {
 		});
 	}, [teamsError]);
 
-	const getRosterForTeam = async (teamId: string) => {
+	const getRosterForTeam = useCallback(async (teamId: string) => {
 		const cached = rosterCacheRef.current.get(teamId);
 		if (cached) {
 			return cached;
@@ -65,7 +65,7 @@ export const useMatchEntryForm = () => {
 		const roster = await fetchPlayersForTeam(teamId);
 		rosterCacheRef.current.set(teamId, roster);
 		return roster;
-	};
+	}, []);
 
 	const ensureTeamsAvailable = useCallback(async () => {
 		if (teams.length) {
@@ -125,7 +125,6 @@ export const useMatchEntryForm = () => {
 			try {
 				const roster = await getRosterForTeam(teamId);
 				if (!isActive) return;
-				if (!isActive) return;
 				setPlayers(roster);
 			} catch (error) {
 				if (!isActive) return;
@@ -144,39 +143,51 @@ export const useMatchEntryForm = () => {
 		return () => {
 			isActive = false;
 		};
-	}, [homeTeamId, awayTeamId]);
+	}, [awayTeamId, getRosterForTeam, homeTeamId, setToast]);
 
-	const handleHomeTeamChange = (value: string) => {
-		setHomeTeamId(value);
-		setLines((prev) =>
-			prev.map((line) => {
-				const next = {
-					...line,
-					teamH: { player1Id: "", player2Id: "" },
-				};
-				return {
-					...next,
-					winnerTeamId: determineWinner(next, value, awayTeamId),
-				};
-			})
-		);
-	};
+	const resetLinesForTeamChange = useCallback(
+		(
+			nextTeamId: string,
+			opponentTeamId: string,
+			homeOrAway: "teamH" | "teamA"
+		) => {
+			setLines((prev) =>
+				prev.map((line) => {
+					const clearedLine = {
+						...line,
+						[homeOrAway]: { player1Id: "", player2Id: "" },
+					};
+					return {
+						...clearedLine,
+						winnerTeamId: determineWinner(
+							clearedLine,
+							homeOrAway === "teamH"
+								? nextTeamId
+								: opponentTeamId,
+							homeOrAway === "teamH" ? opponentTeamId : nextTeamId
+						),
+					};
+				})
+			);
+		},
+		[setLines]
+	);
 
-	const handleAwayTeamChange = (value: string) => {
-		setAwayTeamId(value);
-		setLines((prev) =>
-			prev.map((line) => {
-				const next = {
-					...line,
-					teamA: { player1Id: "", player2Id: "" },
-				};
-				return {
-					...next,
-					winnerTeamId: determineWinner(next, homeTeamId, value),
-				};
-			})
-		);
-	};
+	const handleHomeTeamChange = useCallback(
+		(value: string) => {
+			setHomeTeamId(value);
+			resetLinesForTeamChange(value, awayTeamId, "teamH");
+		},
+		[awayTeamId, resetLinesForTeamChange]
+	);
+
+	const handleAwayTeamChange = useCallback(
+		(value: string) => {
+			setAwayTeamId(value);
+			resetLinesForTeamChange(value, homeTeamId, "teamA");
+		},
+		[homeTeamId, resetLinesForTeamChange]
+	);
 
 	const resetForm = () => {
 		setHomeTeamId("");
