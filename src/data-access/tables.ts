@@ -1,3 +1,7 @@
+/**
+ * All-tables explorer descriptors and fetcher. Centralizes Supabase queries for
+ * the admin viewer page.
+ */
 import { supabase } from "../lib/supabaseClient";
 import { resolveSupabase } from "../lib/supabaseQuery";
 

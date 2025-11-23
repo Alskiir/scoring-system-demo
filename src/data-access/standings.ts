@@ -1,3 +1,6 @@
+/**
+ * Standings view access. Returns raw standings rows for display.
+ */
 import { supabase } from "../lib/supabaseClient";
 import { resolveSupabase } from "../lib/supabaseQuery";
 

@@ -1,3 +1,7 @@
+/**
+ * Player-focused Supabase queries and derived stats. Returns normalized data
+ * ready for hooks/components; no UI formatting here.
+ */
 import { supabase } from "../lib/supabaseClient";
 import { resolveSupabase } from "../lib/supabaseQuery";
 import { formatFullName } from "../utils/dataTransforms";

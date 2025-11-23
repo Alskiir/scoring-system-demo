@@ -1,3 +1,7 @@
+/**
+ * Match history retrieval for a team. Keeps Supabase selection strings and
+ * ordering in one place.
+ */
 import { supabase } from "../lib/supabaseClient";
 import { resolveSupabase } from "../lib/supabaseQuery";
 import type {

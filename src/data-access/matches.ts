@@ -1,3 +1,7 @@
+/**
+ * Match creation + team roster lookups. Handles Supabase writes and shape
+ * normalization for match-related flows.
+ */
 import { supabase } from "../lib/supabaseClient";
 import { resolveSupabase } from "../lib/supabaseQuery";
 import type { PersonRecord, SupabaseRelation } from "../types/league";

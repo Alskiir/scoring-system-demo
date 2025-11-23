@@ -1,3 +1,7 @@
+/**
+ * Team lookups and roster helpers. Only reads; no formatting beyond basic
+ * sorting/filters.
+ */
 import { supabase } from "../lib/supabaseClient";
 import { resolveSupabase } from "../lib/supabaseQuery";
 
