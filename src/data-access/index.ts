@@ -4,3 +4,4 @@ export * from "./players";
 export * from "./standings";
 export * from "./supabaseHelpers";
 export * from "./teams";
+export * from "./tables";

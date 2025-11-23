@@ -1,5 +1,5 @@
-import { supabase } from "../../lib/supabaseClient";
-import { resolveSupabase } from "../../lib/supabaseQuery";
+import { supabase } from "../lib/supabaseClient";
+import { resolveSupabase } from "../lib/supabaseQuery";
 
 type OrderByClause = {
 	column: string;

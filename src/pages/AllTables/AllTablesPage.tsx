@@ -16,7 +16,7 @@ import {
 	fetchTableRows,
 	type DatabaseTableName,
 	type TableDescriptor,
-} from "./api";
+} from "../../data-access/tables";
 import { useAsyncResource } from "../../hooks/useAsyncResource";
 
 const descriptorMap = new Map<DatabaseTableName, TableDescriptor>(
@@ -247,7 +247,7 @@ function AllTablesPage() {
 
 	if (!hasTables) {
 		content = (
-			<BaseCard description="No tables are configured for display. Add descriptors in src/pages/AllTables/api.ts." />
+			<BaseCard description="No tables are configured for display. Add descriptors in src/data-access/tables.ts." />
 		);
 	} else if (!selectedTable) {
 		content = (
