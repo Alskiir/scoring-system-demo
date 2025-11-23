@@ -30,7 +30,7 @@ const pageSummaries = [
 	{
 		title: "All Tables",
 		description:
-			"A completely raw Admin-style snapshot of the database tables and views.",
+			"A completely raw Admin-style snapshot of the database tables and views, as well as the raw database schema.",
 	},
 ];
 
@@ -60,7 +60,7 @@ const setupNotes = [
 	{
 		title: "Data-access guardrails",
 		description:
-			"All Supabase calls live in src/data-access with relation normalization and typed transforms before the UI touches the data.",
+			"All database calls live in src/data-access with relation normalization and typed transforms before the UI touches the data.",
 	},
 ];
 

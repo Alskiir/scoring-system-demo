@@ -246,8 +246,7 @@ function AllTablesPage() {
 	const schemaCard = hasTables ? (
 		<BaseCard
 			title="Database schema"
-			description="Column-level reference for every table and view used in this demo. Browse the raw rows below and keep this handy for column names and order."
-			footer="Schema definitions come directly from src/data-access/tables.ts so they stay in sync with the explorer."
+			description="Column-level reference for every table and view used in this demo."
 		>
 			<div className="mt-6 grid gap-4 md:grid-cols-2">
 				{availableTables.map((table) => {
@@ -360,7 +359,6 @@ function AllTablesPage() {
 						},
 						{ label: "Columns", value: String(columnOrder.length) },
 					]}
-					footer="Results show the latest data returned by the PostgreSQL database. Large tables may be truncated depending on server limits."
 				/>
 				<Table
 					key={selectedTable ?? "all-tables"}
@@ -380,7 +378,7 @@ function AllTablesPage() {
 	return (
 		<PageShell
 			title="All Tables"
-			description="Inspect every table backing the demo. Use the dropdown to switch between raw datasets; the schema reference lives below the data explorer."
+			description="Inspect every table backing the demo. Use the dropdown to switch between raw datasets."
 			actions={actions}
 		>
 			<div className="flex flex-col gap-6">
