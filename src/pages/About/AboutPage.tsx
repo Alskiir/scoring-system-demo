@@ -71,7 +71,7 @@ const dataPractices = [
 ];
 
 const cachingNotes = [
-	"Standings and the team list keep a fresh copy in memory for around 5–10 minutes, so moving between pages does not trigger constant reloads.",
+	"Standings and the team list keep a fresh copy in memory for around 5-10 minutes, so moving between pages does not trigger constant reloads.",
 	"Team details, rosters, match history, and the All Tables view refresh roughly every 2 minutes or whenever you hit Refresh.",
 	"Match Entry remembers any roster it has already pulled during your visit, so switching between teams stays quick even on slower connections.",
 	"If a refresh fails, pages keep showing the last successful data and explain what to check next instead of leaving an empty screen.",
