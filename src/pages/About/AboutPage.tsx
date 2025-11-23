@@ -2,95 +2,95 @@ import { BaseCard, PageShell } from "../../components";
 
 const pageSummaries = [
 	{
-		title: "Home",
-		description:
-			"A short welcome with links to every part of the demo so people can move around without hunting for menus.",
-	},
-	{
 		title: "Standings",
 		description:
-			"Shows the league table sorted by points. If data is missing or slow to load, the page explains what to check next.",
-	},
-	{
-		title: "Teams",
-		description:
-			"Pick a team to see a quick profile plus a roster table. The picker stays in place so you can jump between teams fast.",
-	},
-	{
-		title: "Match History",
-		description:
-			"Select any team to read every recorded match, including line scores and points earned for that match.",
+			"Leaderboard with team records such as wins, losses, and total points.",
 	},
 	{
 		title: "Match Entry",
 		description:
-			"A guided form for captains to log opponents, dates, lineups, and game scores without needing a spreadsheet.",
+			"Enter in details for each match, including teams, players, and scores.",
+	},
+	{
+		title: "Match History",
+		description:
+			"Filter by team to review every recorded match, including line scores and points earned." +
+			"Use the View Line Breakdown button to view more detailed stats.",
+	},
+	{
+		title: "Teams",
+		description:
+			"Pick a roster to see team details, roles, and the team's currently registered players.",
+	},
+	{
+		title: "Player Profile",
+		description:
+			"A deep dive into a player's stats, including matches played, win percentage, and total points earned, as well as their past team memberships.",
 	},
 	{
 		title: "All Tables",
 		description:
-			"Browse the raw data from the database (teams, people, matches, lines, and more) with a dropdown and sortable table.",
-	},
-	{
-		title: "About",
-		description:
-			"The page you are reading now: an overview of how the demo works and how it protects your time.",
+			"A completely raw Admin-style snapshot of the database tables and views.",
 	},
 ];
 
 const matchEntryHighlights = [
-	"Team dropdowns only unlock the rosters for the team you picked, so home and away lineups do not get crossed.",
-	"A line builder lets you add or remove pairings while keeping the numbering tidy and always leaving at least one line in place.",
-	"Each game has plus and minus buttons next to the scores, making it easy to update on a phone or tablet.",
-	"The page checks the math after every change so line winners and the overall winner stay accurate before you submit.",
-	"Autofill can pull two sample teams from the database, set likely scores, and fill the location to speed up demos.",
-	"Submit saves the match, the lines, and each game in one go and shows a clear success or error banner on the spot.",
+	"Autofill grabs two teams with available rosters, sets a date/time/location, and generates plausible scores for demos.",
+	"Line numbers stay tidy as you add or remove rows, and winners recompute automatically whenever scores change.",
+	"Validation blocks submits without teams, players, scores, or winners and shows a banner listing what to fix.",
+	"Submit writes the match, lines, and each game's scores in sequence to keep related rows in sync.",
 ];
 
-const dataPractices = [
+const setupNotes = [
 	{
-		name: "Built for quick visits",
+		title: "Database first",
 		description:
-			"React, TypeScript, and Vite keep the experience snappy while typed hooks reduce surprises as the app grows.",
+			"Reads and writes go straight to Supabase Postgres database via @supabase/supabase-js. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.",
 	},
 	{
-		name: "One data source",
+		title: "Player defaults",
 		description:
-			"All reads and writes go through the Postgres database, with friendly error messages when something blocks a request.",
+			"Set VITE_DEFAULT_PLAYER_ID to preload the Player Profile. Override anytime with ?playerId=<person uuid> in the URL.",
 	},
 	{
-		name: "Consistent layout",
+		title: "Schema at a glance",
 		description:
-			"Shared pieces like the navbar, PageShell, BaseCard, and Table keep spacing, tone, and controls familiar on every page.",
+			"Core tables: team, person, team_membership, match, match_line, line_game. Views: team_standings and player_profile.",
 	},
 	{
-		name: "Cleaned inputs",
+		title: "Data-access guardrails",
 		description:
-			"Names, IDs, and numbers are trimmed and checked before they reach dropdowns or tables, keeping fake and real data aligned.",
+			"All Supabase calls live in src/data-access with relation normalization and typed transforms before the UI touches the data.",
 	},
 ];
 
-const cachingNotes = [
-	"Standings and the team list keep a fresh copy in memory for around 5-10 minutes, so moving between pages does not trigger constant reloads.",
-	"Team details, rosters, match history, and the All Tables view refresh roughly every 2 minutes or whenever you hit Refresh.",
-	"Match Entry remembers any roster it has already pulled during your visit, so switching between teams stays quick even on slower connections.",
-	"If a refresh fails, pages keep showing the last successful data and explain what to check next instead of leaving an empty screen.",
+const reliabilityNotes = [
+	"Data stays in Postgres; there are no mock JSON sources or local fallbacks that drift from the database.",
+	"useAsyncResource caches per-key responses for a few minutes (teams/rosters up to 10m; All Tables 2m) so revisits are instant but still refresh on demand.",
+	"Helpers coerce null/undefined values and trim strings so components render cleanly even when optional fields are missing.",
+	"Error copy points directly to missing env vars or Supabase tables/views, making it clear how to fix blocked requests.",
 ];
 
 function AboutPage() {
 	return (
 		<PageShell
-			title="About the Scoring System Demo"
+			title="About the Pickleball League Demo"
 			description={
 				<>
-					This demo shows how league staff can check scores, manage
-					rosters, and enter matches in one place without juggling
-					spreadsheets. Every page follows the same simple layout so
-					new visitors can move from reading results to adding them
-					with no training.
-					<hr className="my-3 w-150 h-px bg-(--border-subtle) border- not-md:w-75" />
-					Use this overview to see what each page does and how the app
-					keeps data fast and reliable behind the scenes.
+					This web application serves as a complete hub for a
+					database-driven pickleball league, bringing together
+					essential features such as up-to-date standings, detailed
+					rosters, and in-depth player statistics. Users can easily
+					enter match results and access a range of other
+					functionalities, all designed to enhance the pickleball
+					experience, without ever needing to step outside the
+					application. It's a one-stop destination for everything
+					related to your league, making it easier than ever to stay
+					connected and informed.
+					<hr className="my-3 h-px w-150 border-0 bg-(--border-subtle) not-md:w-75" />
+					Use the notes below to see what each page covers, which
+					environment values it expects, and how data is kept
+					resilient for this demo.
 				</>
 			}
 			descriptionAs="div"
@@ -106,8 +106,8 @@ function AboutPage() {
 					}))}
 				/>
 				<BaseCard
-					title="How Match Entry guides captains"
-					description="The busiest workflow lives on Match Entry. Here is how the page keeps things clear:"
+					title="Match Entry guardrails"
+					description="The busiest workflow lives on Match Entry. These checks keep the flow tight:"
 					listItems={matchEntryHighlights.map((item) => ({
 						description: item,
 					}))}
@@ -117,19 +117,19 @@ function AboutPage() {
 
 			<div className="grid gap-6 md:grid-cols-2">
 				<BaseCard
-					title="Tools under the hood"
-					description="Lean choices that keep pages quick without adding extra steps for visitors:"
-					listItems={dataPractices.map((tech) => ({
-						title: tech.name,
-						description: tech.description,
+					title="Data & configuration"
+					description="Where the data lives and what the app expects when you spin it up:"
+					listItems={setupNotes.map((item) => ({
+						title: item.title,
+						description: item.description,
 					}))}
 					listColumns={1}
 				/>
 
 				<BaseCard
-					title="How data stays smooth"
-					description="The app keeps recent results close at hand and falls back gracefully when the network slows down:"
-					listItems={cachingNotes.map((item) => ({
+					title="Reliability & caching"
+					description="How the UI stays responsive while keeping Supabase as the source of truth:"
+					listItems={reliabilityNotes.map((item) => ({
 						description: item,
 					}))}
 					listVariant="bullet"
