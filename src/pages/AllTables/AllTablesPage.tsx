@@ -243,6 +243,70 @@ function AllTablesPage() {
 		</div>
 	) : null;
 
+	const schemaCard = hasTables ? (
+		<BaseCard
+			title="Database schema"
+			description="Column-level reference for every table and view used in this demo. Browse the raw rows below and keep this handy for column names and order."
+			footer="Schema definitions come directly from src/data-access/tables.ts so they stay in sync with the explorer."
+		>
+			<div className="mt-6 grid gap-4 md:grid-cols-2">
+				{availableTables.map((table) => {
+					const columnList = table.columns ?? [];
+					const columnCountLabel = columnList.length
+						? String(columnList.length)
+						: "All";
+
+					return (
+						<div
+							key={table.name}
+							className="rounded-[20px] border border-(--border-subtle) bg-(--surface-panel) px-4 py-4 shadow-(--md-sys-elevation-1)"
+						>
+							<div className="flex flex-wrap items-baseline justify-between gap-2">
+								<Text variant="strong" size="sm">
+									{table.label}
+								</Text>
+								<Text variant="eyebrowMuted" size="xs">
+									{table.name}
+								</Text>
+							</div>
+							<Text variant="muted" size="sm" className="mt-2">
+								{table.description ??
+									"Raw rows returned directly from the PostgreSQL database."}
+							</Text>
+							<Text
+								variant="eyebrowMuted"
+								size="xs"
+								className="mt-3"
+							>
+								Columns ({columnCountLabel})
+							</Text>
+							{columnList.length ? (
+								<div className="mt-2 flex flex-wrap gap-2">
+									{columnList.map((column) => (
+										<span
+											key={column}
+											className="rounded-full border border-(--border-subtle) bg-(--surface-hover) px-3 py-1 text-xs font-semibold text-(--text-secondary)"
+										>
+											{column}
+										</span>
+									))}
+								</div>
+							) : (
+								<Text
+									variant="subtle"
+									size="sm"
+									className="mt-2"
+								>
+									All columns are returned for this table.
+								</Text>
+							)}
+						</div>
+					);
+				})}
+			</div>
+		</BaseCard>
+	) : null;
+
 	let content: React.ReactNode;
 
 	if (!hasTables) {
@@ -316,10 +380,13 @@ function AllTablesPage() {
 	return (
 		<PageShell
 			title="All Tables"
-			description="Inspect every table backing the demo. Use the dropdown to switch between raw datasets."
+			description="Inspect every table backing the demo. Use the dropdown to switch between raw datasets; the schema reference lives below the data explorer."
 			actions={actions}
 		>
-			{content}
+			<div className="flex flex-col gap-6">
+				{content}
+				{schemaCard}
+			</div>
 		</PageShell>
 	);
 }
