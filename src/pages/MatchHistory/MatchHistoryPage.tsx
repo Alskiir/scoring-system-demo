@@ -48,7 +48,7 @@ function MatchHistoryPage() {
 	return (
 		<PageShell
 			title="Match History"
-			description="Select a team to review every recorded match with line scores and the points earned per meet."
+			description="Select a team to review every recorded match with line scores and the points earned per match."
 			actions={
 				<FilterDropdown
 					label="Team"

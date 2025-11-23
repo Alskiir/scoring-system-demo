@@ -19,7 +19,7 @@ const pageSummaries = [
 	{
 		title: "Match History",
 		description:
-			"Select any team to read every recorded match, including line scores and points earned for that meet.",
+			"Select any team to read every recorded match, including line scores and points earned for that match.",
 	},
 	{
 		title: "Match Entry",
