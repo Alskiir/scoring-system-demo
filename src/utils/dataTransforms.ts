@@ -1,18 +1,4 @@
-import type { SupabaseRelation } from "../types/league";
-
-export const takeFirstRelationValue = <T>(
-	relation: SupabaseRelation<T>
-): T | null => {
-	if (!relation) {
-		return null;
-	}
-
-	if (Array.isArray(relation)) {
-		return relation.length ? relation[0]! : null;
-	}
-
-	return relation;
-};
+export { takeFirstRelationValue } from "../data-access/supabaseHelpers";
 
 export const coerceString = (value: unknown): string | null => {
 	if (typeof value !== "string") {

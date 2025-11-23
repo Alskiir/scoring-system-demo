@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { getMatchHistoryForTeam } from "../../../data";
+import { getMatchHistoryForTeam } from "../../../data-access/matchHistory";
 import { useAsyncResource } from "../../../hooks/useAsyncResource";
 import { useTeams } from "../../../hooks/useTeams";
 import type { MatchHistoryEntry, TeamOption } from "../types";

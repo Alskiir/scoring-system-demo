@@ -2,7 +2,7 @@ import type {
 	RawMatchHistoryRow,
 	RawMatchLineRow,
 	RawLineGameRow,
-} from "../../../data/matchHistory";
+} from "../../../data-access/matchHistory";
 import {
 	formatFullName,
 	takeFirstRelationValue,

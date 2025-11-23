@@ -1,4 +1,4 @@
-import type { NormalizedPlayerLine, PartnerStats } from "./api.types";
+import type { NormalizedPlayerLine, PartnerStats } from "./players.types";
 
 export type LineAggregates = {
 	gamesWon: number;

@@ -1,4 +1,4 @@
-import type { RawMatchHistoryRow } from "../../../data/matchHistory";
+import type { RawMatchHistoryRow } from "../../../data-access/matchHistory";
 import { takeFirstRelationValue } from "../../../utils/dataTransforms";
 import type { MatchHistoryEntry, MatchResult } from "../types";
 import {

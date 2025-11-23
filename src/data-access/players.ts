@@ -1,6 +1,11 @@
-import { supabase } from "../../lib/supabaseClient";
-import { resolveSupabase } from "../../lib/supabaseQuery";
-import { formatFullName } from "../../utils/dataTransforms";
+import { supabase } from "../lib/supabaseClient";
+import { resolveSupabase } from "../lib/supabaseQuery";
+import { formatFullName } from "../utils/dataTransforms";
+import {
+	buildLineAggregates,
+	buildPartnerStats,
+	computeWinStreaks,
+} from "./players.stats";
 import {
 	type NormalizedPlayerLine,
 	type PersonRow,
@@ -9,15 +14,11 @@ import {
 	type PlayerProfileRow,
 	type RawPlayerLineRow,
 	type TeamMembershipRow,
-} from "./api.types";
-import { normalizePlayerLines, normalizeRelation } from "./api.transforms";
-import {
-	buildLineAggregates,
-	buildPartnerStats,
-	computeWinStreaks,
-} from "./api.stats";
+} from "./players.types";
+import { normalizePlayerLines } from "./players.transforms";
+import { normalizeRelation } from "./supabaseHelpers";
 
-export type { PartnerStats, PlayerComputedStats } from "./api.types";
+export type { PartnerStats, PlayerComputedStats } from "./players.types";
 
 const PLAYER_LINE_SELECTION = `
 	id,
@@ -64,9 +65,7 @@ const MEMBERSHIP_SELECTION = `
 	)
 `;
 
-export async function fetchPlayerBasics(
-	playerId: string
-): Promise<PlayerBasics> {
+export async function getPlayerBasics(playerId: string): Promise<PlayerBasics> {
 	const [person, profile] = await Promise.all([
 		resolveSupabase<PersonRow>(
 			supabase
@@ -124,7 +123,7 @@ export async function fetchPlayerBasics(
 	};
 }
 
-export async function fetchPlayerLines(
+export async function getPlayerLines(
 	playerId: string
 ): Promise<NormalizedPlayerLine[]> {
 	const rows = await resolveSupabase<RawPlayerLineRow[]>(
@@ -150,12 +149,12 @@ export async function fetchPlayerLines(
 	return normalizePlayerLines(rows, String(playerId));
 }
 
-export async function fetchPlayerComputedStats(
+export async function getPlayerComputedStats(
 	playerId: string
 ): Promise<PlayerComputedStats> {
 	const [basics, lines] = await Promise.all([
-		fetchPlayerBasics(playerId),
-		fetchPlayerLines(playerId),
+		getPlayerBasics(playerId),
+		getPlayerLines(playerId),
 	]);
 
 	if (!lines.length) {

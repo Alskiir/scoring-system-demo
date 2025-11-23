@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { fetchPlayerComputedStats, type PlayerComputedStats } from "../api";
+import {
+	getPlayerComputedStats,
+	type PlayerComputedStats,
+} from "../../../data-access/players";
 
 type UsePlayerStatsResult = {
 	stats: PlayerComputedStats | null;
@@ -42,7 +45,7 @@ export function usePlayerStats(playerId: string): UsePlayerStatsResult {
 		setStats(null);
 		setError(null);
 
-		fetchPlayerComputedStats(playerId)
+		getPlayerComputedStats(playerId)
 			.then((result) => {
 				if (!cancelled) {
 					setStats(result);

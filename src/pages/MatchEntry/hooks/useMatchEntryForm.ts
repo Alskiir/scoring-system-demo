@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
-import { fetchPlayersForTeam, saveMatch } from "../api";
+import { getPlayersForTeam, saveMatch } from "../../../data-access/matches";
 import { determineWinner, deriveMatchWinner, todayIso } from "../lineUtils";
 import type { PlayerOption, ToastState } from "../types";
 import { useTeams } from "../../../hooks/useTeams";
@@ -62,7 +62,7 @@ export const useMatchEntryForm = () => {
 		if (cached) {
 			return cached;
 		}
-		const roster = await fetchPlayersForTeam(teamId);
+		const roster = await getPlayersForTeam(teamId);
 		rosterCacheRef.current.set(teamId, roster);
 		return roster;
 	}, []);

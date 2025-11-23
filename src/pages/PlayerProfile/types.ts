@@ -1,4 +1,4 @@
-import type { PartnerStats } from "./api";
+import type { PartnerStats } from "../../data-access/players";
 
 export type PlayerProfile = {
 	name: string;

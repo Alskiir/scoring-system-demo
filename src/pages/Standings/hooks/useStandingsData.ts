@@ -1,4 +1,4 @@
-import { getStandings } from "../../../data";
+import { getStandings } from "../../../data-access/standings";
 import { useAsyncResource } from "../../../hooks/useAsyncResource";
 import {
 	coerceIdentifierFromRecord,

@@ -1,52 +1,10 @@
+import { coerceNumber, formatFullName } from "../utils/dataTransforms";
 import {
-	coerceNumber,
-	formatFullName,
-	takeFirstRelationValue,
-} from "../../utils/dataTransforms";
-import type { SupabaseRelation } from "../../types/league";
-import type { NormalizedPlayerLine, RawPlayerLineRow } from "./api.types";
-
-const normalizeTimeOffset = (time: string): string => {
-	if (!time) return time;
-	if (time.endsWith("Z")) return time;
-
-	const offsetMatch = time.match(/([+-]\d{2})(\d{2})?$/);
-	if (!offsetMatch) return time;
-
-	const [, hours, minutes] = offsetMatch;
-	return time.replace(offsetMatch[0], `${hours}:${minutes ?? "00"}`);
-};
-
-const parseDateTime = (
-	date: string | null,
-	time: string | null
-): Date | null => {
-	if (!date) return null;
-
-	// Supabase `timetz` values come back like "16:12:00+00", which isn't ISO
-	// friendly. Normalize the offset and try a couple of parse strategies.
-	if (time) {
-		const normalizedTime = normalizeTimeOffset(time);
-		const isoDateTimeString = `${date}T${normalizedTime}`;
-		const parsedIso = new Date(isoDateTimeString);
-		if (!Number.isNaN(parsedIso.valueOf())) return parsedIso;
-
-		const fallback = new Date(`${date} ${time}`);
-		if (!Number.isNaN(fallback.valueOf())) return fallback;
-	}
-
-	const parsedDateOnly = new Date(date);
-	return Number.isNaN(parsedDateOnly.valueOf()) ? null : parsedDateOnly;
-};
-
-export const normalizeRelation = <T>(relation: SupabaseRelation<T>): T | null =>
-	takeFirstRelationValue(relation);
-
-const normalizeToArray = <T>(relation: SupabaseRelation<T>): T[] => {
-	if (!relation) return [];
-	const values = Array.isArray(relation) ? relation : [relation];
-	return values.filter(Boolean) as T[];
-};
+	normalizeRelation,
+	normalizeRelationArray,
+	parseSupabaseDateTime,
+} from "./supabaseHelpers";
+import type { NormalizedPlayerLine, RawPlayerLineRow } from "./players.types";
 
 const dedupeLinesByMatch = (
 	lines: NormalizedPlayerLine[]
@@ -93,7 +51,7 @@ const mapLineRow = (
 	const match = normalizeRelation(row.match);
 	if (!match) return null;
 
-	const matchDate = parseDateTime(match.match_date, match.match_time);
+	const matchDate = parseSupabaseDateTime(match.match_date, match.match_time);
 	const matchLabel = formatMatchLabel(matchDate);
 	const lineNumber =
 		typeof row.line_number === "number" && Number.isFinite(row.line_number)
@@ -133,7 +91,7 @@ const mapLineRow = (
 			  }
 			: undefined;
 
-	const gamesArray = normalizeToArray(row.line_game);
+	const gamesArray = normalizeRelationArray(row.line_game);
 
 	const games = gamesArray
 		.map((game) => {

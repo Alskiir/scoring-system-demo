@@ -1,4 +1,4 @@
-import type { SupabaseRelation } from "../../types/league";
+import type { SupabaseRelation } from "../types/league";
 
 export type PersonRow = {
 	id: string;

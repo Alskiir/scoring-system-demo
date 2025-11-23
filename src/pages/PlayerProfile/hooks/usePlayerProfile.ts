@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { DEFAULT_PLAYER_ID, DEFAULT_PROFILE_COPY } from "../constants";
-import type { PartnerStats } from "../api";
+import type { PartnerStats } from "../../../data-access/players";
 import {
 	type PlayerProfile,
 	type PlayerProfileViewModel,

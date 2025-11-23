@@ -1,11 +1,9 @@
-import { supabase } from "../../lib/supabaseClient";
-import { resolveSupabase } from "../../lib/supabaseQuery";
-import type { PersonRecord, SupabaseRelation } from "../../types/league";
-import {
-	formatFullName,
-	takeFirstRelationValue,
-} from "../../utils/dataTransforms";
-import type { LineFormState, PlayerOption } from "./types";
+import { supabase } from "../lib/supabaseClient";
+import { resolveSupabase } from "../lib/supabaseQuery";
+import type { PersonRecord, SupabaseRelation } from "../types/league";
+import { formatFullName } from "../utils/dataTransforms";
+import { takeFirstRelationValue } from "./supabaseHelpers";
+import type { LineFormState, PlayerOption } from "./matches.types";
 
 type PlayerRecord = Pick<PersonRecord, "id" | "first_name" | "last_name">;
 
@@ -13,7 +11,7 @@ type TeamMembershipRow = {
 	person: SupabaseRelation<PlayerRecord>;
 };
 
-export const fetchPlayersForTeam = async (
+export const getPlayersForTeam = async (
 	teamId: string
 ): Promise<PlayerOption[]> => {
 	const typedRows = await resolveSupabase<TeamMembershipRow[]>(

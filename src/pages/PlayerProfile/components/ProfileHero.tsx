@@ -1,5 +1,5 @@
 import { Header, Text } from "../../../components";
-import type { PartnerStats } from "../api";
+import type { PartnerStats } from "../../../data-access/players";
 import type { PlayerProfile, Stat } from "../types";
 
 type PlayerAvatarProps = {

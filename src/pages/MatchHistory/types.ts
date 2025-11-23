@@ -1,4 +1,4 @@
-import type { RawMatchHistoryRow } from "../../data/matchHistory";
+import type { RawMatchHistoryRow } from "../../data-access/matchHistory";
 import type { TeamSelectOption } from "../../types/league";
 
 export type TeamOption = TeamSelectOption;

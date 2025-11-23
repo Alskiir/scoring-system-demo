@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { getTeam, getTeamRoster } from "../../../data";
+import { getTeam, getTeamRoster } from "../../../data-access/teams";
 import { useAsyncResource } from "../../../hooks/useAsyncResource";
 import { useTeams } from "../../../hooks/useTeams";
 import { takeFirstRelationValue } from "../../../utils/dataTransforms";

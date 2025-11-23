@@ -1,4 +1,4 @@
-import { getTeams } from "../data";
+import { getTeams } from "../data-access/teams";
 import type { TeamRecord } from "../types/league";
 import { invalidateResource, useAsyncResource } from "./useAsyncResource";
 
