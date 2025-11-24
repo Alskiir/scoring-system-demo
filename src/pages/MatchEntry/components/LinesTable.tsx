@@ -202,7 +202,7 @@ const LinesTable = ({
 									size="xs"
 									align="center"
 								>
-									Team A Players
+									Team H Players
 								</Text>
 							</th>
 							<th
@@ -215,7 +215,7 @@ const LinesTable = ({
 									size="xs"
 									align="center"
 								>
-									Team H Players
+									Team A Players
 								</Text>
 							</th>
 							{Array.from({ length: maxGames }, (_, idx) => (

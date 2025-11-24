@@ -171,21 +171,21 @@ const LineRowComponent = ({
 				</div>
 			</td>
 			<TeamPlayersColumn
-				side="teamA"
-				label="Team A"
-				players={awayPlayers}
-				disabled={!awayTeamId}
-				selections={line.teamA}
-				columnWidth={columnWidths.player}
-				lineId={line.id}
-				onPlayerChange={onPlayerChange}
-			/>
-			<TeamPlayersColumn
 				side="teamH"
 				label="Team H"
 				players={homePlayers}
 				disabled={!homeTeamId}
 				selections={line.teamH}
+				columnWidth={columnWidths.player}
+				lineId={line.id}
+				onPlayerChange={onPlayerChange}
+			/>
+			<TeamPlayersColumn
+				side="teamA"
+				label="Team A"
+				players={awayPlayers}
+				disabled={!awayTeamId}
+				selections={line.teamA}
 				columnWidth={columnWidths.player}
 				lineId={line.id}
 				onPlayerChange={onPlayerChange}
