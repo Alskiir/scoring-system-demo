@@ -77,18 +77,22 @@ const TableHeader = <T,>({
 									<button
 										type="button"
 										onClick={() => onSort(column.id)}
-										className={`group relative flex h-full w-full items-center ${headerPaddingClasses} font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent) ${buttonStateClasses}`}
+										className={`group relative grid h-full w-full grid-cols-[auto_1fr_auto] items-center ${headerPaddingClasses} gap-2 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent) ${buttonStateClasses}`}
 										aria-pressed={Boolean(isActive)}
 										style={headerMinHeightStyle}
 									>
 										<span
-											className={`flex w-full items-center ${headerJustifyClass}`}
+											aria-hidden="true"
+											className="w-4"
+										/>
+										<span
+											className={`flex items-center ${headerJustifyClass}`}
 										>
 											{headerContent}
 										</span>
 										<span
 											aria-hidden="true"
-											className={`pointer-events-none absolute right-4 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center text-[0.8rem] ${sortIconColorClass}`}
+											className={`flex h-4 w-4 items-center justify-center text-[0.8rem] ${sortIconColorClass}`}
 										>
 											<span
 												className={`transition-opacity duration-150 ${
