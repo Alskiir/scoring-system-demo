@@ -16,6 +16,11 @@ export type MatchLineGame = {
 	awayScore: number | null;
 };
 
+export type MatchLineTotals = {
+	home: number | null;
+	away: number | null;
+};
+
 export type MatchLineDetail = {
 	id: string;
 	lineNumber: number;
@@ -24,6 +29,7 @@ export type MatchLineDetail = {
 	games: MatchLineGame[];
 	homePlayers: MatchLinePlayer[];
 	awayPlayers: MatchLinePlayer[];
+	totalPoints: MatchLineTotals;
 };
 
 export type MatchHistoryEntry = {

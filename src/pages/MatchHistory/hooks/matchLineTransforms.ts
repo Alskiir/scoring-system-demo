@@ -7,7 +7,12 @@ import {
 	formatFullName,
 	takeFirstRelationValue,
 } from "../../../utils/dataTransforms";
-import type { MatchLineDetail, MatchLinePlayer, MatchResult } from "../types";
+import type {
+	MatchLineDetail,
+	MatchLinePlayer,
+	MatchLineTotals,
+	MatchResult,
+} from "../types";
 
 export type NormalizedMatchLineRow = Omit<RawMatchLineRow, "line_game"> & {
 	line_game: RawLineGameRow[];
@@ -58,6 +63,40 @@ const parseScore = (value: unknown): number | null => {
 	}
 
 	return null;
+};
+
+const calculateTotalPoints = (
+	games: MatchLineDetail["games"]
+): MatchLineTotals => {
+	let homePoints = 0;
+	let awayPoints = 0;
+	let hasScores = false;
+
+	games.forEach((game) => {
+		if (
+			typeof game.homeScore !== "number" ||
+			typeof game.awayScore !== "number"
+		) {
+			return;
+		}
+
+		hasScores = true;
+
+		if (game.homeScore === game.awayScore) {
+			return;
+		}
+
+		if (game.homeScore > game.awayScore) {
+			homePoints += 1;
+		} else {
+			awayPoints += 1;
+		}
+	});
+
+	return {
+		home: hasScores ? homePoints : null,
+		away: hasScores ? awayPoints : null,
+	};
 };
 
 export const countLinesWon = (
@@ -183,6 +222,11 @@ export const buildLineDetails = (
 			Number.isFinite(line.line_number)
 				? line.line_number
 				: index + 1;
+		const games = line.line_game.map((game, gameIndex) => ({
+			id: game.id ?? `${line.id}-${gameIndex}`,
+			homeScore: parseScore(game.home_score),
+			awayScore: parseScore(game.away_score),
+		}));
 
 		return {
 			id: line.id,
@@ -195,10 +239,7 @@ export const buildLineDetails = (
 			),
 			homePlayers,
 			awayPlayers,
-			games: line.line_game.map((game, gameIndex) => ({
-				id: game.id ?? `${line.id}-${gameIndex}`,
-				homeScore: parseScore(game.home_score),
-				awayScore: parseScore(game.away_score),
-			})),
+			games,
+			totalPoints: calculateTotalPoints(games),
 		};
 	});
