@@ -169,14 +169,7 @@ export const useMatchEntryForm = () => {
 		[awayTeamId, teams]
 	);
 
-	const matchTitle = useMemo(() => {
-		if (homeTeam && awayTeam) {
-			return `${awayTeam.name} (A) vs ${homeTeam.name} (H)`;
-		}
-		if (homeTeam) return `${homeTeam.name} (H)`;
-		if (awayTeam) return `${awayTeam.name} (A)`;
-		return "Match Entry";
-	}, [awayTeam, homeTeam]);
+	const matchTitle = "Match Entry";
 
 	const resetLinesForTeamChange = useCallback(
 		(
